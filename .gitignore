@@ -1,0 +1,59 @@
+# Arquivos do Sistema Operacional (Windows / macOS / Linux)
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Editores e IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Dependências e Builds (caso use Node.js futuramente)
+node_modules/
+dist/
+build/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Ambientes virtuais e cache Python (para servidores locais como http.server)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Variáveis de ambiente e segredos
+.env
+.env.local
+.env.*.local
+
+# Backups e exportações temporárias de progresso do usuário
+progresso_*.json
+*.tmp
+*.temp
+*.bak
+
+# Arquivos temporários de IDEs e agentes
+.tempmediaStorage/
+scratch/

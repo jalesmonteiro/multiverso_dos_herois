@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiverso dos heróis</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            dcBlue: '#0052cc',
+            marvelRed: '#ed1d24',
+            goldBadge: '#f59e0b',
+            darkSurface: '#0f172a',
+            darkCard: '#1e293b',
+            darkBorder: '#334155'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* Prevent horizontal scroll without breaking hardware-accelerated root scrolling */
+    html, body {
+      overflow-x: clip;
+    }
+    
+    /* Hardware acceleration for sticky header & cards */
+    header {
+      transform: translateZ(0);
+    }
+    .card-gpu {
+      transform: translateZ(0);
+      contain: layout paint;
+    }
+
+    /* Custom scrollbars and transitions */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .badge-glow { box-shadow: 0 0 15px rgba(245, 158, 11, 0.45); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-amber-500 selection:text-black flex flex-col overflow-x-clip">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="flex -space-x-1 items-center shrink-0">
+          <span class="px-2 py-0.5 rounded font-black text-xs tracking-wider bg-blue-600 text-white shadow-sm z-10">DC</span>
+          <span class="px-2 py-0.5 rounded font-black text-xs tracking-wider bg-red-600 text-white shadow-sm">MARVEL</span>
+        </div>
+        <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center truncate">
+          Multiverso dos heróis
+        </h1>
+      </div>
+
+      <!-- Utilities -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Drawer Button (Estatísticas & Conquistas) -->
+        <button id="btnOpenDrawer" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 transition" title="Ver Estatísticas e Conquistas">
+          <i class="fa-solid fa-trophy"></i>
+          <span class="text-xs font-bold text-slate-200">Estatísticas & Conquistas</span>
+        </button>
+        <!-- Mobile Drawer Icon -->
+        <button id="btnOpenDrawerMobile" class="md:hidden p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 transition" title="Ver Estatísticas e Conquistas">
+          <i class="fa-solid fa-trophy"></i>
+        </button>
+
+        <!-- User Profile Selector -->
+        <div class="relative">
+          <div class="flex items-center bg-slate-800 border border-slate-700 rounded-full px-2 sm:px-3 py-1.5 gap-2 hover:border-slate-500 transition-all cursor-pointer" id="userMenuBtn">
+            <div id="currentUserAvatar" class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs bg-amber-500 text-slate-950 shadow-inner shrink-0">
+              U
+            </div>
+            <span id="currentUserName" class="hidden sm:inline-block text-sm font-semibold text-slate-200 max-w-[100px] truncate">Perfil</span>
+            <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+          </div>
+
+          <!-- User dropdown -->
+          <div id="userDropdown" class="hidden absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-3 z-50">
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2 px-1">Alternar Usuário</div>
+            <div id="userListContainer" class="space-y-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar"></div>
+            
+            <div class="border-t border-slate-800 my-2 pt-2 space-y-1">
+              <button id="btnNewUser" class="w-full text-left text-xs flex items-center gap-2 px-2 py-1.5 rounded-lg text-emerald-400 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-user-plus"></i> Criar novo perfil
+              </button>
+              <button id="btnManageCurrentProfile" class="w-full text-left text-xs flex items-center gap-2 px-2 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800 transition">
+                <i class="fa-solid fa-pen-to-square"></i> Editar perfil ativo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Sync Menu Button -->
+        <button id="openDataModalBtn" title="Gerenciar Dados e JSON" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+          <i class="fa-solid fa-database"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+
+    <!-- Filters Section -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-4">
+      
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+          <input type="text" id="searchInput" placeholder="Buscar por título, personagem, sinopse..." 
+                 class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition" />
+          <button id="clearSearchBtn" type="button" class="hidden absolute right-3 top-2.5 w-6 h-6 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center justify-center text-xs" title="Limpar busca">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Sort and View toggles -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+          <div class="flex items-center bg-slate-950 border border-slate-700/80 rounded-xl px-2.5 py-1.5 shrink-0">
+            <i class="fa-solid fa-arrow-down-short-wide text-xs text-slate-400 mr-2"></i>
+            <select id="sortBySelect" class="bg-transparent text-xs text-slate-200 font-medium focus:outline-none cursor-pointer">
+              <option value="ano_desc" class="bg-slate-900">Ano (Mais recente)</option>
+              <option value="ano_asc" class="bg-slate-900">Ano (Mais antigo)</option>
+              <option value="titulo_asc" class="bg-slate-900">Título (A - Z)</option>
+              <option value="duracao_desc" class="bg-slate-900">Duração (Maior)</option>
+              <option value="nota_desc" class="bg-slate-900">Nota (Maior)</option>
+            </select>
+          </div>
+
+          <div class="flex bg-slate-950 border border-slate-700/80 rounded-xl p-1 shrink-0">
+            <button id="viewGridBtn" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-amber-400 shadow transition" title="Modo Grade">
+              <i class="fa-solid fa-grip"></i>
+            </button>
+            <button id="viewListBtn" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition" title="Modo Lista">
+              <i class="fa-solid fa-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Toggles: Publisher, Status, Heros -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+        
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <!-- Editora -->
+          <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg" id="publisherFilterContainer">
+            <button data-publisher="ALL" class="pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-slate-700 text-white">Todas</button>
+            <button data-publisher="DC" class="pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-transparent text-slate-400 hover:text-white">DC</button>
+            <button data-publisher="Marvel" class="pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-transparent text-slate-400 hover:text-white">Marvel</button>
+          </div>
+
+          <!-- Status -->
+          <div class="flex items-center gap-1 overflow-x-auto max-w-full" id="statusFilterContainer">
+            <button data-status="ALL" class="status-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition bg-slate-700 text-white">Todos</button>
+            <button data-status="WATCHED" class="status-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition bg-slate-800 text-slate-300 hover:text-emerald-400"><i class="fa-solid fa-check text-[10px] mr-1"></i>Vistos</button>
+            <button data-status="FAVORITES" class="status-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition bg-slate-800 text-slate-300 hover:text-red-400"><i class="fa-solid fa-heart text-[10px] mr-1"></i>Favoritos</button>
+            <button data-status="WATCHLIST" class="status-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition bg-slate-800 text-slate-300 hover:text-amber-400"><i class="fa-solid fa-bookmark text-[10px] mr-1"></i>Na Lista</button>
+            <button data-status="UNWATCHED" class="status-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition bg-slate-800 text-slate-300 hover:text-slate-100">Não Vistos</button>
+          </div>
+        </div>
+
+        <!-- Botão Abrir Heróis e Botão de Limpeza Rápida com Caixa Fechada -->
+        <div class="flex items-center gap-2">
+          <button id="btnToggleHeros" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-2">
+            <i class="fa-solid fa-mask"></i> 
+            <span>Filtrar Heróis</span>
+            <span id="heroFilterActiveBadge" class="px-1.5 py-0.5 bg-slate-950/80 border border-slate-700 text-slate-400 font-semibold rounded-md text-[9px] min-w-[36px] text-center">0 ativo</span>
+            <i id="heroFilterChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+          </button>
+
+          <!-- Botão de Remoção Rápida com Um Clique (ativo mesmo com a caixa fechada) -->
+          <button id="clearHeroQuickBtn" class="hidden px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-red-500/20 hover:border-red-500/40 text-amber-400 hover:text-red-400 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm group" title="Remover filtro de herói com um clique">
+            <i class="fa-solid fa-xmark text-xs group-hover:scale-110 transition-transform"></i>
+            <span id="clearHeroQuickName" class="max-w-[100px] truncate text-[11px] font-bold"></span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Container Expansível de Heróis -->
+      <div id="heroFilterContainer" class="hidden pt-3 border-t border-slate-800/80 transition-all">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Selecione para filtrar:</span>
+          <button id="clearCharacterFilter" class="hidden text-amber-400 hover:underline text-[10px]">Limpar seleção</button>
+        </div>
+        <div id="characterChipsContainer" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+          <!-- Chips gerados pelo JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- MOVIE LISTINGS -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 px-1">
+        <span id="filteredCountLabel">Exibindo 0 de 0 filmes</span>
+        <button id="resetAllFiltersBtn" class="text-slate-400 hover:text-amber-400 transition hidden">
+          <i class="fa-solid fa-rotate-left mr-1"></i>Limpar filtros
+        </button>
+      </div>
+
+      <!-- Grid View Container -->
+      <div id="moviesGridContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"></div>
+
+      <!-- List View Container -->
+      <div id="moviesListContainer" class="hidden space-y-2"></div>
+
+      <!-- Empty State -->
+      <div id="emptyCatalogState" class="hidden text-center py-16 px-4 bg-slate-900/40 rounded-2xl border border-slate-800">
+        <i class="fa-solid fa-film text-3xl text-slate-600 mb-3"></i>
+        <h3 class="text-sm font-semibold text-slate-300">Nenhum filme encontrado</h3>
+        <p class="text-xs text-slate-500 mt-1">Ajuste seus filtros ou a busca.</p>
+      </div>
+
+      <!-- PAGINATION CONTROLS -->
+      <div id="paginationControls" class="hidden flex items-center justify-center gap-1.5 pt-6 pb-4 flex-wrap select-none">
+        <button id="btnPrevPage" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-800 hover:text-white transition flex items-center justify-center shadow-sm" title="Página anterior">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <div id="paginationPages" class="flex items-center gap-1.5 flex-wrap"></div>
+        <button id="btnNextPage" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-800 hover:text-white transition flex items-center justify-center shadow-sm" title="Próxima página">
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- DRAWER: ESTATÍSTICAS E CONQUISTAS LATERAL -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity opacity-0"></div>
+  <aside id="badgeDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 flex items-center justify-center shadow-inner">
+          <i class="fa-solid fa-trophy text-sm"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-white">Estatísticas & Conquistas</h2>
+          <p class="text-[10px] text-slate-400">Progresso do catálogo e troféus</p>
+        </div>
+      </div>
+      <button id="btnCloseDrawer" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition" title="Fechar">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+    <!-- Content -->
+    <div class="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+      
+      <!-- Seção de Estatísticas -->
+      <div>
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-pie text-amber-400"></i>
+          <span>Estatísticas de Visualização</span>
+        </h3>
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Progresso Geral -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex flex-col shadow-sm">
+            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Progresso Geral</span>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="statWatchedPct" class="text-xl font-extrabold text-white">0%</span>
+              <span id="statWatchedFraction" class="text-[10px] text-slate-500 font-semibold">(0/0)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
+              <div id="statWatchedBar" class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Tempo de Tela -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex flex-col shadow-sm">
+            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Tempo de Tela</span>
+            <div class="mt-1">
+              <span id="statTotalTime" class="text-xl font-extrabold text-white">0h 00m</span>
+            </div>
+            <span class="text-[9px] text-slate-500 font-medium mt-2">assistidos até agora</span>
+          </div>
+
+          <!-- Divisão DC -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex flex-col shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Divisão DC</span>
+              <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-blue-600 text-white">DC</span>
+            </div>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="statDcCount" class="text-xl font-extrabold text-blue-400">0</span>
+              <span id="statDcFraction" class="text-[10px] text-slate-500 font-semibold">(0)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
+              <div id="statDcBar" class="bg-blue-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Divisão Marvel -->
+          <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex flex-col shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Divisão Marvel</span>
+              <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-red-600 text-white">MARVEL</span>
+            </div>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="statMarvelCount" class="text-xl font-extrabold text-red-400">0</span>
+              <span id="statMarvelFraction" class="text-[10px] text-slate-500 font-semibold">(0)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
+              <div id="statMarvelBar" class="bg-red-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800"></div>
+
+      <!-- Conquistadas -->
+      <div>
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex justify-between items-center">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-400"></i> Insígnias Desbloqueadas</span>
+          <span id="drawerConquistadasTotal" class="text-amber-400 font-bold bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px]">0</span>
+        </h3>
+        <div id="drawerUnlockedBadges" class="grid grid-cols-2 gap-2">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800"></div>
+
+      <!-- Próximas (Ordenadas pelas que faltam menos) -->
+      <div>
+        <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex justify-between items-center">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-arrow-trend-up text-blue-400"></i> Próximas Insígnias</span>
+          <span class="text-[9px] text-slate-500">Mais próximas de completar</span>
+        </h3>
+        <div id="drawerNextBadges" class="space-y-2">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- MODAL: DETALHES DO FILME -->
+  <div id="movieDetailModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col md:flex-row">
+      <!-- Poster Section -->
+      <div class="w-full md:w-2/5 relative bg-slate-950 flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-800 flex items-center justify-center p-4 md:p-6">
+        <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-800 w-48 md:w-full aspect-[2/3]">
+          <img id="detailPoster" src="" alt="Poster" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60'">
+          
+          <!-- Botão Ícone do Lápis no Canto Superior Direito -->
+          <button id="btnEditPoster" 
+                  title="Alterar Imagem do Pôster" 
+                  class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all duration-200 shadow-md bg-black/60 hover:bg-black/85 text-slate-300 hover:text-white backdrop-blur-md border border-white/15 hover:border-white/30 hover:scale-110">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail Body Section -->
+      <div class="w-full md:w-3/5 p-6 flex flex-col" id="detailModalBody">
+        <!-- Dynamically populated body goes here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SECUNDÁRIO: ALTERAR PÔSTER -->
+  <div id="imageEditModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-image text-blue-400"></i> Alterar Pôster do Filme
+        </h3>
+        <button id="btnCancelPosterX" class="text-slate-400 hover:text-white transition p-1">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Dropzone / Área de Arrastar e Colar -->
+      <div id="posterDropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-950/60 hover:bg-slate-950/90 relative group">
+        <input type="file" id="posterFileInput" accept="image/*" class="hidden">
+        
+        <!-- Preview da Imagem Carregada -->
+        <div id="posterPreviewContainer" class="hidden flex-col items-center space-y-2">
+          <img id="posterPreviewImg" src="" alt="Preview" class="w-32 h-44 object-cover rounded-lg shadow-md border border-slate-700 mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60'">
+          <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> Imagem pronta para salvar no catálogo
+          </span>
+          <p class="text-[10px] text-slate-500">Clique ou arraste outra imagem para substituir</p>
+        </div>
+
+        <!-- Instruções Iniciais -->
+        <div id="posterDropPrompt" class="space-y-2 py-4">
+          <div class="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto text-xl border border-blue-500/20 group-hover:scale-110 transition-transform">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-200">Arraste e solte uma imagem aqui</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">ou cole com <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">Ctrl+V</kbd> ou selecione do PC</p>
+          </div>
+          <span class="inline-block px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 hover:border-slate-600 transition mt-1">
+            <i class="fa-solid fa-folder-open mr-1"></i> Procurar no computador
+          </span>
+        </div>
+      </div>
+
+      <!-- Ou URL direta opcional -->
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Ou cole uma URL da imagem:</label>
+        <input type="text" id="newPosterUrlInput" placeholder="https://exemplo.com/poster.jpg" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition">
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <span class="text-[10px] text-slate-500">Salva diretamente no JSON</span>
+        <div class="flex gap-2">
+          <button id="btnCancelPoster" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Cancelar</button>
+          <button id="btnSavePoster" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-900/30 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar Imagem
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MENSAGENS E ALERTAS GENÉRICOS (Substitui os alerts e confirms) -->
+  <div id="customDialogModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4">
+      <div id="dialogIcon" class="mx-auto w-10 h-10 rounded-full flex items-center justify-center text-lg mb-2"></div>
+      <h3 id="dialogTitle" class="text-sm font-bold text-white">Atenção</h3>
+      <p id="dialogMessage" class="text-[11px] text-slate-400"></p>
+      <div id="dialogButtons" class="flex justify-center gap-2 pt-2">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PERFIL DO USUÁRIO (CRIAR/EDITAR) -->
+  <div id="userModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h3 id="userModalTitle" class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-pen text-amber-400"></i> Perfil</h3>
+        <button id="closeUserModalBtn" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nome do Perfil</label>
+          <input type="text" id="userModalNameInput" placeholder="Ex: Bruce, Peter..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-400">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Cor do Avatar</label>
+          <div class="flex items-center gap-2 flex-wrap" id="avatarColorPicker">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <button id="btnDeleteUser" class="hidden text-[11px] font-bold text-red-400 hover:underline">
+          Excluir Perfil
+        </button>
+        <div class="flex gap-2 ml-auto">
+          <button id="btnCancelUserModal" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Cancelar</button>
+          <button id="btnSaveUserModal" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DADOS E JSON -->
+  <div id="dataModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-database text-blue-400"></i> Sistema de Dados (JSON)
+        </h3>
+        <button id="closeDataModalBtn" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
+          <div class="font-bold text-slate-200">Progresso do Perfil: <span id="dataModalActiveUser" class="text-amber-400"></span></div>
+          <div class="flex gap-2 pt-1">
+            <button id="btnExportUserProgress" class="flex-1 px-2 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> Baixar Marcações
+            </button>
+            <label class="flex-1 px-2 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
+              <i class="fa-solid fa-upload"></i> Restaurar Marcações
+              <input type="file" id="importUserProgressFile" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
+          <div class="font-bold text-slate-200">Catálogo Base de Filmes</div>
+          <div class="flex gap-2 pt-1">
+            <button id="btnExportCatalog" class="flex-1 px-2 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-file-export"></i> Baixar Catálogo
+            </button>
+            <label class="flex-1 px-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
+              <i class="fa-solid fa-file-import"></i> Carregar Catálogo
+              <input type="file" id="importCatalogFile" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-2 text-right">
+          <button id="btnResetDefaultCatalog" class="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded-lg font-semibold transition text-[10px]">
+            Restaurar os 12 filmes padrão
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICAÇÃO -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-[90] hidden bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-xl shadow-2xl text-[11px] font-bold flex items-center gap-2 transition-all">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">Salvo com sucesso!</span>
+  </div>
+
+  <!-- SCRIPT COMPLETO -->
+  <script>
+    const DEFAULT_CATALOG = [
+      { id: "dc-1", titulo_pt: "Liga da Justiça: Crise em Duas Terras", titulo_original: "Justice League: Crisis on Two Earths", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Liga da Justiça", "Batman", "Superman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Um Lex Luthor heróico de universo paralelo recruta a Liga para lutar contra o Sindicato do Crime.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60" },
+      { id: "dc-2", titulo_pt: "Constantine: Cidade dos Demônios", titulo_original: "Constantine: City of Demons", editora: "DC", ano: 2018, duracao_minutos: 90, classificacao_etaria: "18+", universo_selo: "DCAMU", personagens_principais: ["Constantine"], generos: ["Terror", "Ocultismo"], sinopse: "Constantine usa artes das trevas para salvar uma garota em Los Angeles.", poster_url: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?w=500&q=60" },
+      { id: "dc-3", titulo_pt: "Batman: Sob o Capuz", titulo_original: "Batman: Under the Red Hood", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Batman", "Capuz Vermelho", "Coringa"], generos: ["Ação"], sinopse: "O implacável Capuz Vermelho toma Gotham e assombra o passado de Batman.", poster_url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&q=60" },
+      { id: "dc-4", titulo_pt: "Batman: O Cavaleiro das Trevas - Parte 1", titulo_original: "Batman: The Dark Knight Returns", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "Elseworlds", personagens_principais: ["Batman", "Robin"], generos: ["Distopia"], sinopse: "Bruce Wayne grisalho retorna para combater mutantes selvagens.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60" },
+      { id: "dc-5", titulo_pt: "Mulher-Maravilha: Linhagem de Sangue", titulo_original: "Wonder Woman: Bloodlines", editora: "DC", ano: 2019, duracao_minutos: 83, classificacao_etaria: "14+", universo_selo: "DCAMU", personagens_principais: ["Mulher-Maravilha"], generos: ["Ação"], sinopse: "Diana enfrenta o cartel Corporação Vilania que quer invadir Themyscira.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60" },
+      { id: "dc-6", titulo_pt: "Superman vs. A Elite", titulo_original: "Superman vs. The Elite", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Superman"], generos: ["Ação", "Drama"], sinopse: "A moral do Superman é posta em xeque por anti-heróis violentos.", poster_url: "https://images.unsplash.com/photo-1533613220915-609f661a6fe1?w=500&q=60" },
+      { id: "marvel-1", titulo_pt: "Hulk Vs. Wolverine", titulo_original: "Hulk Vs. Wolverine", editora: "Marvel", ano: 2009, duracao_minutos: 37, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk", "Wolverine", "Deadpool"], generos: ["Ação"], sinopse: "Wolverine é enviado para conter o Incrível Hulk no Canadá.", poster_url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=60" },
+      { id: "marvel-2", titulo_pt: "Planeta Hulk", titulo_original: "Planet Hulk", editora: "Marvel", ano: 2010, duracao_minutos: 81, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk"], generos: ["Ficção Científica"], sinopse: "Hulk banido chega em Sakaar e vira um gladiador lendário.", poster_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=60" },
+      { id: "marvel-3", titulo_pt: "Doutor Estranho: O Mago Supremo", titulo_original: "Doctor Strange", editora: "Marvel", ano: 2007, duracao_minutos: 95, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Doutor Estranho", "Ancião"], generos: ["Magia"], sinopse: "O cirurgião Strange viaja ao Tibete e descobre as artes ocultas.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60" },
+      { id: "marvel-4", titulo_pt: "Thor: O Filho de Asgard", titulo_original: "Thor: Tales of Asgard", editora: "Marvel", ano: 2011, duracao_minutos: 77, classificacao_etaria: "10+", universo_selo: "Animated Features", personagens_principais: ["Thor", "Loki"], generos: ["Mitologia"], sinopse: "O jovem Thor e Loki saem em busca da espada de Surtur.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60" },
+      { id: "marvel-5", titulo_pt: "Os Supremos: O Filme", titulo_original: "Ultimate Avengers", editora: "Marvel", ano: 2006, duracao_minutos: 72, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Capitão América", "Homem de Ferro", "Hulk", "Thor"], generos: ["Ação"], sinopse: "Heróis se unem para impedir uma invasão Chitauri na Terra.", poster_url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&q=60" },
+      { id: "dc-7", titulo_pt: "Liga da Justiça: Ponto de Ignição", titulo_original: "The Flashpoint Paradox", editora: "DC", ano: 2013, duracao_minutos: 81, classificacao_etaria: "16+", universo_selo: "DCAMU", personagens_principais: ["Flash", "Batman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Barry altera o tempo, criando uma realidade caótica e brutal.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60" }
+    ];
+
+    const AVATAR_COLORS = [
+      { name: 'Âmbar', bg: '#f59e0b', text: '#020617' },
+      { name: 'Azul', bg: '#3b82f6', text: '#ffffff' },
+      { name: 'DC Blue', bg: '#0052cc', text: '#ffffff' },
+      { name: 'Marvel Red', bg: '#ed1d24', text: '#ffffff' },
+      { name: 'Esmeralda', bg: '#10b981', text: '#ffffff' },
+      { name: 'Roxo', bg: '#8b5cf6', text: '#ffffff' }
+    ];
+
+    class LocalDb {
+      constructor() {
+        this.DB_NAME = 'MultiversoHeroisDB';
+        this.DB_VERSION = 1;
+        this.PREFIX = 'mh_';
+        this.idb = null;
+        
+        // Espelho em memória para acesso síncrono e ultra-rápido da interface
+        this._catalog = [];
+        this._users = [];
+        this._progress = [];
+        this._activeUserId = null;
+
+        // Carga inicial síncrona do localStorage (garante renderização instantânea)
+        this.loadFromLocalStorage();
+      }
+
+      loadFromLocalStorage() {
+        try {
+          const rawCat = localStorage.getItem(this.PREFIX + 'catalog');
+          this._catalog = rawCat ? JSON.parse(rawCat) : JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+        } catch(e) {
+          this._catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+        }
+
+        try {
+          const rawUsers = localStorage.getItem(this.PREFIX + 'users');
+          this._users = rawUsers ? JSON.parse(rawUsers) : [];
+          if (!this._users.length) {
+            const defUsr = { id: 'usr_' + Date.now(), nome: 'Herói Principal', avatarCor: '#f59e0b', avatarTextColor: '#020617' };
+            this._users = [defUsr];
+            this._activeUserId = defUsr.id;
+          } else {
+            this._activeUserId = localStorage.getItem(this.PREFIX + 'active_user') || this._users[0].id;
+          }
+        } catch(e) {
+          const defUsr = { id: 'usr_' + Date.now(), nome: 'Herói Principal', avatarCor: '#f59e0b', avatarTextColor: '#020617' };
+          this._users = [defUsr];
+          this._activeUserId = defUsr.id;
+        }
+
+        try {
+          const rawProg = localStorage.getItem(this.PREFIX + 'progress');
+          this._progress = rawProg ? JSON.parse(rawProg) : [];
+        } catch(e) {
+          this._progress = [];
+        }
+      }
+
+      async initIdb() {
+        return new Promise((resolve) => {
+          if (!window.indexedDB) {
+            console.warn('IndexedDB não suportado neste navegador. Utilizando fallback.');
+            resolve(false);
+            return;
+          }
+          const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('catalog')) {
+              db.createObjectStore('catalog', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('users')) {
+              db.createObjectStore('users', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('progress')) {
+              db.createObjectStore('progress', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('settings')) {
+              db.createObjectStore('settings', { keyPath: 'key' });
+            }
+          };
+          req.onsuccess = async (e) => {
+            this.idb = e.target.result;
+            await this.syncFromIdb();
+            resolve(true);
+          };
+          req.onerror = (e) => {
+            console.error('Falha ao abrir IndexedDB:', e);
+            resolve(false);
+          };
+        });
+      }
+
+      async syncFromIdb() {
+        if (!this.idb) return;
+        try {
+          const idbCatalog = await this.idbGetAll('catalog');
+          if (idbCatalog && idbCatalog.length > 0) {
+            this._catalog = idbCatalog;
+          } else if (this._catalog.length > 0) {
+            // Migra dados existentes do localStorage para o IndexedDB
+            await this.idbSaveAll('catalog', this._catalog);
+          }
+
+          const idbUsers = await this.idbGetAll('users');
+          if (idbUsers && idbUsers.length > 0) {
+            this._users = idbUsers;
+          } else if (this._users.length > 0) {
+            await this.idbSaveAll('users', this._users);
+          }
+
+          const idbProg = await this.idbGetAll('progress');
+          if (idbProg && idbProg.length > 0) {
+            this._progress = idbProg;
+          } else if (this._progress.length > 0) {
+            await this.idbSaveAll('progress', this._progress);
+          }
+
+          const idbActive = await this.idbGet('settings', 'active_user');
+          if (idbActive && idbActive.value) {
+            this._activeUserId = idbActive.value;
+          } else if (this._activeUserId) {
+            await this.idbPut('settings', { key: 'active_user', value: this._activeUserId });
+          }
+
+          // Limpa chaves pesadas do localStorage para liberar permanentemente os 5MB de quota
+          try {
+            localStorage.removeItem(this.PREFIX + 'catalog');
+            localStorage.removeItem(this.PREFIX + 'progress');
+          } catch(e) {}
+        } catch(err) {
+          console.error('Erro na sincronização inicial do IndexedDB:', err);
+        }
+      }
+
+      idbGetAll(storeName) {
+        return new Promise((resolve) => {
+          if (!this.idb) return resolve([]);
+          const tx = this.idb.transaction(storeName, 'readonly');
+          const store = tx.objectStore(storeName);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+      }
+
+      idbGet(storeName, key) {
+        return new Promise((resolve) => {
+          if (!this.idb) return resolve(null);
+          const tx = this.idb.transaction(storeName, 'readonly');
+          const store = tx.objectStore(storeName);
+          const req = store.get(key);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+      }
+
+      idbPut(storeName, item) {
+        return new Promise((resolve) => {
+          if (!this.idb) return resolve(false);
+          const tx = this.idb.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          const req = store.put(item);
+          req.onsuccess = () => resolve(true);
+          req.onerror = (e) => { console.error('Erro ao salvar no IDB:', e); resolve(false); };
+        });
+      }
+
+      idbSaveAll(storeName, items) {
+        return new Promise((resolve) => {
+          if (!this.idb) return resolve(false);
+          const tx = this.idb.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          store.clear();
+          items.forEach(item => store.put(item));
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = (e) => { console.error('Erro ao salvar lote no IDB:', e); resolve(false); };
+        });
+      }
+
+      idbDelete(storeName, key) {
+        return new Promise((resolve) => {
+          if (!this.idb) return resolve(false);
+          const tx = this.idb.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          const req = store.delete(key);
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        });
+      }
+
+      getCatalog() {
+        return this._catalog;
+      }
+
+      saveCatalog(c) {
+        this._catalog = c;
+        this.idbSaveAll('catalog', c);
+      }
+
+      resetCatalog() {
+        this._catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+        this.idbSaveAll('catalog', this._catalog);
+        return this._catalog;
+      }
+
+      getUsers() {
+        return this._users;
+      }
+
+      getUserById(id) {
+        return this._users.find(u => String(u.id) === String(id)) || null;
+      }
+
+      saveUser(u) {
+        const idx = this._users.findIndex(x => String(x.id) === String(u.id));
+        if (idx >= 0) this._users[idx] = { ...this._users[idx], ...u };
+        else this._users.push(u);
+        this.idbPut('users', u);
+      }
+
+      deleteUser(id) {
+        if (this._users.length <= 1) return false;
+        this._users = this._users.filter(x => String(x.id) !== String(id));
+        this.idbDelete('users', id);
+
+        this._progress = this._progress.filter(x => String(x.usuario_id) !== String(id));
+        this.idbSaveAll('progress', this._progress);
+
+        if (String(this._activeUserId) === String(id)) {
+          this.setActiveUserId(this._users[0].id);
+        }
+        return true;
+      }
+
+      getActiveUserId() {
+        return this._activeUserId;
+      }
+
+      setActiveUserId(id) {
+        this._activeUserId = id;
+        try { localStorage.setItem(this.PREFIX + 'active_user', id); } catch(e) {}
+        this.idbPut('settings', { key: 'active_user', value: id });
+      }
+
+      getAllProgress() {
+        return this._progress;
+      }
+
+      getUserMovieProgress(uid, mid) {
+        const found = this._progress.find(p => String(p.usuario_id) === String(uid) && String(p.filme_id) === String(mid));
+        return found || { id: `${uid}_${mid}`, usuario_id: uid, filme_id: mid, visto: false, favorito: false, watchlist: false, nota: 0, comentario: '' };
+      }
+
+      saveUserMovieProgress(uid, mid, updates) {
+        const key = `${uid}_${mid}`;
+        const idx = this._progress.findIndex(p => String(p.usuario_id) === String(uid) && String(p.filme_id) === String(mid));
+        let item;
+        if (idx >= 0) {
+          this._progress[idx] = { ...this._progress[idx], ...updates, id: key };
+          item = this._progress[idx];
+        } else {
+          item = { id: key, usuario_id: uid, filme_id: mid, visto: false, favorito: false, watchlist: false, nota: 0, comentario: '', ...updates };
+          this._progress.push(item);
+        }
+        this.idbPut('progress', item);
+      }
+
+      getUserAllProgress(uid) {
+        return this._progress.filter(p => String(p.usuario_id) === String(uid));
+      }
+
+      importUserProgress(uid, recs) {
+        const mids = new Set(recs.map(r => String(r.filme_id)));
+        this._progress = this._progress.filter(p => !(String(p.usuario_id) === String(uid) && mids.has(String(p.filme_id))));
+        recs.forEach(r => this._progress.push({ ...r, id: `${uid}_${r.filme_id}`, usuario_id: uid }));
+        this.idbSaveAll('progress', this._progress);
+      }
+    }
+
+    class App {
+      constructor() {
+        this.db = new LocalDb();
+        this.currentViewMode = 'grid';
+        this.filters = { publisher: 'ALL', status: 'ALL', character: null, search: '', sortBy: 'ano_desc' };
+        this.pagination = { current: 1, limit: 12 };
+        this.editingUserId = null;
+        this.modalTargetMovieId = null;
+        this.heroFilterExpanded = false;
+        
+        this.bindEvents();
+        this.renderAll();
+
+        // Inicializa o IndexedDB de forma assíncrona e sincroniza
+        this.db.initIdb().then(() => {
+          this.renderAll();
+        });
+      }
+
+      bindEvents() {
+        // Dropdown Usuário
+        const usrBtn = document.getElementById('userMenuBtn');
+        const usrDrop = document.getElementById('userDropdown');
+        usrBtn.onclick = (e) => { e.stopPropagation(); usrDrop.classList.toggle('hidden'); };
+        document.onclick = () => { usrDrop.classList.add('hidden'); };
+        usrDrop.onclick = (e) => e.stopPropagation();
+
+        // Modal Usuário
+        document.getElementById('btnNewUser').onclick = () => { usrDrop.classList.add('hidden'); this.openUserModal(null); };
+        document.getElementById('btnManageCurrentProfile').onclick = () => { usrDrop.classList.add('hidden'); this.openUserModal(this.db.getActiveUserId()); };
+        document.getElementById('closeUserModalBtn').onclick = () => this.closeUserModal();
+        document.getElementById('btnCancelUserModal').onclick = () => this.closeUserModal();
+        document.getElementById('btnSaveUserModal').onclick = () => this.saveUserModal();
+        document.getElementById('btnDeleteUser').onclick = () => this.confirmAction('Atenção', 'Deseja excluir este perfil e todos os seus dados de visto/favoritos? Isso não afetará outros perfis.', () => this.deleteUser(), 'Excluir', 'bg-red-500 text-white hover:bg-red-600');
+
+        // Filtros e UI Principal
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        searchInput.oninput = (e) => {
+          const val = e.target.value;
+          this.filters.search = val.toLowerCase().trim();
+          if (clearSearchBtn) clearSearchBtn.classList.toggle('hidden', !val);
+          this.pagination.current = 1;
+          this.renderMovies();
+        };
+
+        searchInput.onkeydown = (e) => {
+          if (e.key === 'Escape' && searchInput.value) {
+            if (clearSearchBtn) clearSearchBtn.click();
+          }
+        };
+
+        if (clearSearchBtn) {
+          clearSearchBtn.onclick = () => {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            this.filters.search = '';
+            this.pagination.current = 1;
+            this.renderMovies();
+            searchInput.focus();
+          };
+        }
+
+        document.getElementById('sortBySelect').onchange = (e) => { this.filters.sortBy = e.target.value; this.pagination.current = 1; this.renderMovies(); };
+        document.getElementById('viewGridBtn').onclick = () => this.setViewMode('grid');
+        document.getElementById('viewListBtn').onclick = () => this.setViewMode('list');
+        document.getElementById('resetAllFiltersBtn').onclick = () => this.resetFilters();
+        
+        // Editora e Status botoes rápidos
+        document.querySelectorAll('.pub-btn').forEach(b => b.onclick = (e) => {
+          document.querySelectorAll('.pub-btn').forEach(btn => btn.className = 'pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-transparent text-slate-400 hover:text-white');
+          e.target.className = 'pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-slate-700 text-white';
+          this.filters.publisher = e.target.dataset.publisher;
+          this.pagination.current = 1; this.renderMovies();
+        });
+        document.querySelectorAll('.status-btn').forEach(b => b.onclick = (e) => {
+          document.querySelectorAll('.status-btn').forEach(btn => btn.classList.replace('bg-slate-700', 'bg-slate-800'));
+          document.querySelectorAll('.status-btn').forEach(btn => { if(btn.dataset.status === 'ALL') btn.classList.replace('text-white', 'text-slate-300'); });
+          e.currentTarget.classList.replace('bg-slate-800', 'bg-slate-700');
+          if(e.currentTarget.dataset.status === 'ALL') e.currentTarget.classList.replace('text-slate-300', 'text-white');
+          this.filters.status = e.currentTarget.dataset.status;
+          this.pagination.current = 1; this.renderMovies();
+        });
+
+        // Herói Toggle e Limpar
+        document.getElementById('btnToggleHeros').onclick = () => this.toggleHeroSection();
+        
+        const clearHeroAction = () => {
+          this.filters.character = null;
+          this.pagination.current = 1;
+          this.renderCharacterChips();
+          this.renderMovies();
+        };
+
+        document.getElementById('clearCharacterFilter').onclick = clearHeroAction;
+        const quickClearBtn = document.getElementById('clearHeroQuickBtn');
+        if (quickClearBtn) quickClearBtn.onclick = clearHeroAction;
+        
+        const activeBadge = document.getElementById('heroFilterActiveBadge');
+        if (activeBadge) {
+          activeBadge.onclick = (e) => {
+            if (this.filters.character) {
+              e.stopPropagation();
+              clearHeroAction();
+            }
+          };
+        }
+
+        // Gaveta Conquistas
+        document.getElementById('btnOpenDrawer').onclick = () => this.openDrawer();
+        document.getElementById('btnOpenDrawerMobile').onclick = () => this.openDrawer();
+        document.getElementById('btnCloseDrawer').onclick = () => this.closeDrawer();
+        document.getElementById('drawerOverlay').onclick = () => this.closeDrawer();
+
+        // Modal Detalhes do Filme
+        document.getElementById('movieDetailModal').onclick = (e) => { if(e.target.id === 'movieDetailModal') this.closeDetailModal(); };
+
+        // Modal Edição Poster
+        document.getElementById('btnEditPoster').onclick = () => this.openPosterEditModal();
+        document.getElementById('btnCancelPoster').onclick = () => this.closePosterEditModal();
+        const btnCancelPosterX = document.getElementById('btnCancelPosterX');
+        if (btnCancelPosterX) btnCancelPosterX.onclick = () => this.closePosterEditModal();
+        document.getElementById('imageEditModal').onclick = (e) => { if(e.target.id === 'imageEditModal') this.closePosterEditModal(); };
+        document.getElementById('btnSavePoster').onclick = () => this.savePosterEdit();
+
+        // Drag & Drop / Seleção de Arquivo / Paste
+        const dropzone = document.getElementById('posterDropzone');
+        const fileInput = document.getElementById('posterFileInput');
+
+        if (dropzone && fileInput) {
+          dropzone.onclick = (e) => {
+            if (e.target.id !== 'posterFileInput') fileInput.click();
+          };
+
+          fileInput.onchange = (e) => {
+            if (e.target.files && e.target.files[0]) {
+              this.processImageFile(e.target.files[0], (dataUrl) => {
+                this.setPosterPreview(dataUrl);
+                this.showToast('Imagem carregada com sucesso!');
+              });
+            }
+          };
+
+          dropzone.ondragover = (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-blue-500', 'bg-blue-500/10');
+          };
+
+          dropzone.ondragleave = (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-500', 'bg-blue-500/10');
+          };
+
+          dropzone.ondrop = (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-500', 'bg-blue-500/10');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+              this.processImageFile(e.dataTransfer.files[0], (dataUrl) => {
+                this.setPosterPreview(dataUrl);
+                this.showToast('Imagem arrastada com sucesso!');
+              });
+            }
+          };
+
+          window.addEventListener('paste', (e) => {
+            const modal = document.getElementById('imageEditModal');
+            if (modal && !modal.classList.contains('hidden')) {
+              const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+              if (items) {
+                for (let i = 0; i < items.length; i++) {
+                  if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    if (blob) {
+                      this.processImageFile(blob, (dataUrl) => {
+                        this.setPosterPreview(dataUrl);
+                        this.showToast('Imagem colada da área de transferência!');
+                      });
+                      e.preventDefault();
+                      return;
+                    }
+                  }
+                }
+              }
+              const pastedText = (e.clipboardData || window.clipboardData)?.getData('text');
+              if (pastedText && (pastedText.startsWith('http://') || pastedText.startsWith('https://') || pastedText.startsWith('data:image/'))) {
+                document.getElementById('newPosterUrlInput').value = pastedText;
+                this.setPosterPreview(pastedText);
+                this.showToast('URL da imagem colada!');
+              }
+            }
+          });
+
+          document.getElementById('newPosterUrlInput').oninput = (e) => {
+            const val = e.target.value.trim();
+            if (val && (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/'))) {
+              this.setPosterPreview(val);
+            }
+          };
+        }
+
+        // Paginação
+        document.getElementById('btnPrevPage').onclick = () => { 
+          if(this.pagination.current > 1){ 
+            this.pagination.current--; 
+            this.renderMovies(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+          } 
+        };
+        document.getElementById('btnNextPage').onclick = () => { 
+          const { filtered } = this.getFilteredMovies();
+          const totalPages = Math.max(1, Math.ceil(filtered.length / this.pagination.limit));
+          if(this.pagination.current < totalPages){ 
+            this.pagination.current++; 
+            this.renderMovies(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+          } 
+        };
+
+        // Data Modal
+        document.getElementById('openDataModalBtn').onclick = () => { document.getElementById('dataModalActiveUser').textContent = this.db.getUserById(this.db.getActiveUserId()).nome; document.getElementById('dataModal').classList.remove('hidden'); document.getElementById('dataModal').classList.add('flex'); };
+        document.getElementById('closeDataModalBtn').onclick = () => { document.getElementById('dataModal').classList.add('hidden'); document.getElementById('dataModal').classList.remove('flex'); };
+        document.getElementById('btnExportUserProgress').onclick = () => this.exportUserData();
+        document.getElementById('btnExportCatalog').onclick = () => this.exportCatalogData();
+        document.getElementById('importUserProgressFile').onchange = (e) => this.importUserData(e);
+        document.getElementById('importCatalogFile').onchange = (e) => this.importCatalogData(e);
+        document.getElementById('btnResetDefaultCatalog').onclick = () => this.confirmAction('Restaurar Catálogo', 'Esta ação substituirá os filmes atuais pelos 12 da lista base. Deseja continuar?', () => {
+          this.db.resetCatalog();
+          this.showToast('Catálogo restaurado!');
+          document.getElementById('closeDataModalBtn').click();
+          this.renderAll();
+        }, 'Restaurar');
+      }
+
+      showToast(msg) {
+        const toast = document.getElementById('toastNotification');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.remove('hidden');
+        if(this.toastTimer) clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
+      }
+
+      confirmAction(title, message, onConfirmCallback, btnText='Confirmar', btnClass='bg-amber-500 text-slate-950 hover:bg-amber-400') {
+        const modal = document.getElementById('customDialogModal');
+        document.getElementById('dialogTitle').textContent = title;
+        document.getElementById('dialogMessage').textContent = message;
+        document.getElementById('dialogIcon').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl"></i>';
+        const btns = document.getElementById('dialogButtons');
+        btns.innerHTML = '';
+        
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700';
+        btnCancel.textContent = 'Cancelar';
+        btnCancel.onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+        
+        const btnConf = document.createElement('button');
+        btnConf.className = `px-4 py-1.5 rounded-lg text-xs font-bold ${btnClass}`;
+        btnConf.textContent = btnText;
+        btnConf.onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); onConfirmCallback(); };
+        
+        btns.appendChild(btnCancel);
+        btns.appendChild(btnConf);
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+      }
+
+      renderUserBar() {
+        const activeId = this.db.getActiveUserId();
+        const u = this.db.getUserById(activeId);
+        const users = this.db.getUsers();
+        
+        if (u) {
+          document.getElementById('currentUserName').textContent = u.nome;
+          const av = document.getElementById('currentUserAvatar');
+          av.textContent = u.nome.charAt(0).toUpperCase();
+          av.style.backgroundColor = u.avatarCor; av.style.color = u.avatarTextColor;
+        }
+
+        const cont = document.getElementById('userListContainer');
+        cont.innerHTML = '';
+        users.forEach(user => {
+          const isActive = user.id === activeId;
+          const item = document.createElement('div');
+          item.className = `flex items-center p-2 rounded-lg cursor-pointer transition ${isActive ? 'bg-amber-500/10 border border-amber-500/30' : 'hover:bg-slate-800'}`;
+          item.innerHTML = `
+            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background-color: ${user.avatarCor}; color: ${user.avatarTextColor}">${user.nome.charAt(0).toUpperCase()}</div>
+            <span class="ml-2 text-xs font-medium truncate flex-1 ${isActive ? 'text-amber-400 font-bold' : 'text-slate-300'}">${user.nome}</span>
+            ${isActive ? '<i class="fa-solid fa-check text-amber-400 text-xs"></i>' : ''}
+          `;
+          item.onclick = () => { this.db.setActiveUserId(user.id); document.getElementById('userDropdown').classList.add('hidden'); this.renderAll(); this.showToast(`Perfil alterado para ${user.nome}`); };
+          cont.appendChild(item);
+        });
+      }
+
+      openUserModal(userId = null) {
+        this.editingUserId = userId;
+        const modal = document.getElementById('userModal');
+        const input = document.getElementById('userModalNameInput');
+        const picker = document.getElementById('avatarColorPicker');
+        picker.innerHTML = '';
+
+        let selBg = AVATAR_COLORS[0].bg, selTx = AVATAR_COLORS[0].text;
+        if (userId) {
+          const u = this.db.getUserById(userId);
+          document.getElementById('userModalTitle').innerHTML = '<i class="fa-solid fa-user-pen text-amber-400"></i> Editar Perfil';
+          input.value = u.nome; selBg = u.avatarCor; selTx = u.avatarTextColor;
+          document.getElementById('btnDeleteUser').classList.remove('hidden');
+        } else {
+          document.getElementById('userModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-emerald-400"></i> Novo Perfil';
+          input.value = '';
+          document.getElementById('btnDeleteUser').classList.add('hidden');
+        }
+
+        AVATAR_COLORS.forEach(c => {
+          const dot = document.createElement('div');
+          dot.className = `w-8 h-8 rounded-full cursor-pointer flex items-center justify-center transition border-2 ${selBg === c.bg ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`;
+          dot.style.backgroundColor = c.bg;
+          dot.innerHTML = selBg === c.bg ? `<i class="fa-solid fa-check text-xs" style="color: ${c.text}"></i>` : '';
+          dot.onclick = () => {
+            selBg = c.bg; selTx = c.text;
+            modal.dataset.bg = selBg; modal.dataset.tx = selTx;
+            Array.from(picker.children).forEach(d => { d.className = 'w-8 h-8 rounded-full cursor-pointer transition border-2 border-transparent hover:scale-105 flex items-center justify-center'; d.innerHTML=''; });
+            dot.className = 'w-8 h-8 rounded-full cursor-pointer transition border-2 border-white scale-110 shadow-lg flex items-center justify-center';
+            dot.innerHTML = `<i class="fa-solid fa-check text-xs" style="color: ${selTx}"></i>`;
+          };
+          picker.appendChild(dot);
+        });
+
+        modal.dataset.bg = selBg; modal.dataset.tx = selTx;
+        modal.classList.remove('hidden'); modal.classList.add('flex'); input.focus();
+      }
+
+      closeUserModal() { document.getElementById('userModal').classList.add('hidden'); document.getElementById('userModal').classList.remove('flex'); }
+      
+      saveUserModal() {
+        const nome = document.getElementById('userModalNameInput').value.trim();
+        if (!nome) return;
+        const bg = document.getElementById('userModal').dataset.bg;
+        const tx = document.getElementById('userModal').dataset.tx;
+
+        if (this.editingUserId) {
+          this.db.saveUser({ id: this.editingUserId, nome, avatarCor: bg, avatarTextColor: tx });
+          this.showToast('Perfil atualizado!');
+        } else {
+          const newId = 'usr_' + Date.now();
+          this.db.saveUser({ id: newId, nome, avatarCor: bg, avatarTextColor: tx });
+          this.db.setActiveUserId(newId);
+          this.showToast(`Perfil ${nome} criado!`);
+        }
+        this.closeUserModal(); this.renderAll();
+      }
+
+      deleteUser() {
+        if (!this.editingUserId) return;
+        if(this.db.deleteUser(this.editingUserId)){
+           this.showToast('Perfil removido.'); this.closeUserModal(); this.renderAll();
+        } else {
+           this.showToast('Não é possível remover o único perfil!');
+        }
+      }
+
+      resetFilters() {
+        this.filters = { publisher: 'ALL', status: 'ALL', character: null, search: '', sortBy: 'ano_desc' };
+        document.getElementById('searchInput').value = '';
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+        document.getElementById('sortBySelect').value = 'ano_desc';
+        document.querySelectorAll('.pub-btn').forEach((b,i) => b.className = i===0 ? 'pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-slate-700 text-white' : 'pub-btn px-2 py-1 rounded text-[11px] font-bold transition bg-transparent text-slate-400 hover:text-white');
+        document.querySelectorAll('.status-btn').forEach((b,i) => {
+          b.classList.replace('bg-slate-700', 'bg-slate-800');
+          if(i===0) { b.classList.replace('bg-slate-800', 'bg-slate-700'); b.classList.replace('text-slate-300', 'text-white'); }
+          else b.classList.replace('text-white', 'text-slate-300');
+        });
+        this.pagination.current = 1;
+        this.renderCharacterChips();
+        this.renderMovies();
+      }
+
+      setViewMode(m) {
+        this.currentViewMode = m;
+        document.getElementById('viewGridBtn').className = m==='grid' ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-amber-400 shadow transition' : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+        document.getElementById('viewListBtn').className = m==='list' ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-amber-400 shadow transition' : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+        document.getElementById('moviesGridContainer').style.display = m==='grid' ? 'grid' : 'none';
+        document.getElementById('moviesListContainer').style.display = m==='list' ? 'block' : 'none';
+      }
+
+      toggleHeroSection() {
+        this.heroFilterExpanded = !this.heroFilterExpanded;
+        const cont = document.getElementById('heroFilterContainer');
+        const chev = document.getElementById('heroFilterChevron');
+        if (this.heroFilterExpanded) {
+          cont.classList.remove('hidden'); chev.classList.add('rotate-180');
+        } else {
+          cont.classList.add('hidden'); chev.classList.remove('rotate-180');
+        }
+      }
+
+      renderCharacterChips() {
+        const counts = {};
+        this.db.getCatalog().forEach(m => (m.personagens_principais||[]).forEach(c => counts[c] = (counts[c]||0)+1));
+        const sorted = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
+        
+        const cont = document.getElementById('characterChipsContainer'); cont.innerHTML='';
+        sorted.forEach(c => {
+          const isAct = this.filters.character === c;
+          const btn = document.createElement('button');
+          btn.className = `px-2 py-1 rounded-md text-[10px] font-medium transition flex items-center gap-1 border ${isAct ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'}`;
+          btn.innerHTML = `<span>${c}</span><span class="opacity-50">(${counts[c]})</span>`;
+          btn.onclick = () => { this.filters.character = isAct ? null : c; this.pagination.current = 1; this.renderCharacterChips(); this.renderMovies(); };
+          cont.appendChild(btn);
+        });
+
+        // Toggle feedback badge and quick clear button
+        const badge = document.getElementById('heroFilterActiveBadge');
+        const clearBtn = document.getElementById('clearCharacterFilter');
+        const quickClearBtn = document.getElementById('clearHeroQuickBtn');
+        const quickClearName = document.getElementById('clearHeroQuickName');
+
+        if (this.filters.character) {
+          badge.textContent = '1 ativo';
+          badge.className = 'px-1.5 py-0.5 bg-amber-500 text-slate-950 font-bold rounded-md text-[9px] shadow-sm animate-pulse min-w-[36px] text-center';
+          clearBtn.classList.remove('hidden');
+          if (quickClearBtn && quickClearName) {
+            quickClearName.textContent = this.filters.character;
+            quickClearBtn.classList.remove('hidden');
+            quickClearBtn.classList.add('flex');
+          }
+        } else {
+          badge.textContent = '0 ativo';
+          badge.className = 'px-1.5 py-0.5 bg-slate-950/80 border border-slate-700 text-slate-400 font-semibold rounded-md text-[9px] min-w-[36px] text-center';
+          clearBtn.classList.add('hidden');
+          if (quickClearBtn) {
+            quickClearBtn.classList.add('hidden');
+            quickClearBtn.classList.remove('flex');
+          }
+        }
+      }
+
+      getFilteredMovies() {
+        const cat = this.db.getCatalog();
+        const userProg = this.db.getUserAllProgress(this.db.getActiveUserId());
+        const pMap = {}; userProg.forEach(p => pMap[p.filme_id] = p);
+
+        let f = cat.filter(m => {
+          const p = pMap[m.id] || {};
+          if (this.filters.publisher !== 'ALL' && m.editora !== this.filters.publisher) return false;
+          if (this.filters.status === 'WATCHED' && !p.visto) return false;
+          if (this.filters.status === 'FAVORITES' && !p.favorito) return false;
+          if (this.filters.status === 'WATCHLIST' && !p.watchlist) return false;
+          if (this.filters.status === 'UNWATCHED' && p.visto) return false;
+          if (this.filters.character && !(m.personagens_principais||[]).includes(this.filters.character)) return false;
+          if (this.filters.search) {
+            const s = this.filters.search;
+            if (!(m.titulo_pt||'').toLowerCase().includes(s) && !(m.titulo_original||'').toLowerCase().includes(s) && !(m.sinopse||'').toLowerCase().includes(s)) return false;
+          }
+          return true;
+        });
+
+        f.sort((a,b) => {
+          const pa = pMap[a.id]||{}, pb = pMap[b.id]||{};
+          if(this.filters.sortBy==='ano_desc') return b.ano - a.ano;
+          if(this.filters.sortBy==='ano_asc') return a.ano - b.ano;
+          if(this.filters.sortBy==='duracao_desc') return b.duracao_minutos - a.duracao_minutos;
+          if(this.filters.sortBy==='nota_desc') return (pb.nota||0) - (pa.nota||0);
+          return a.titulo_pt.localeCompare(b.titulo_pt);
+        });
+        return { filtered: f, pMap };
+      }
+
+      renderMovies() {
+        const { filtered, pMap } = this.getFilteredMovies();
+        const hasFilters = this.filters.publisher!=='ALL' || this.filters.status!=='ALL' || this.filters.character || this.filters.search;
+        document.getElementById('resetAllFiltersBtn').classList.toggle('hidden', !hasFilters);
+        
+        const grid = document.getElementById('moviesGridContainer');
+        const list = document.getElementById('moviesListContainer');
+        const empty = document.getElementById('emptyCatalogState');
+        const pagCtl = document.getElementById('paginationControls');
+
+        if (filtered.length === 0) {
+          document.getElementById('filteredCountLabel').textContent = `Exibindo 0 de ${this.db.getCatalog().length}`;
+          grid.innerHTML=''; list.innerHTML=''; empty.classList.remove('hidden'); pagCtl.classList.add('hidden'); return;
+        }
+        empty.classList.add('hidden');
+
+        // Paginação
+        const totalPages = Math.max(1, Math.ceil(filtered.length / this.pagination.limit));
+        if (this.pagination.current > totalPages) this.pagination.current = totalPages;
+        const start = (this.pagination.current - 1) * this.pagination.limit;
+        const pageData = filtered.slice(start, start + this.pagination.limit);
+
+        const countTxt = filtered.length > this.pagination.limit
+          ? `Exibindo ${start + 1}–${start + pageData.length} de ${filtered.length}`
+          : `Exibindo ${filtered.length} de ${this.db.getCatalog().length}`;
+        document.getElementById('filteredCountLabel').textContent = countTxt;
+
+        if (filtered.length > 0) {
+          pagCtl.classList.remove('hidden');
+          pagCtl.classList.add('flex');
+          document.getElementById('btnPrevPage').disabled = this.pagination.current === 1;
+          document.getElementById('btnNextPage').disabled = this.pagination.current === totalPages;
+
+          const pagesContainer = document.getElementById('paginationPages');
+          if (pagesContainer) {
+            pagesContainer.innerHTML = '';
+            
+            // Gerar lista de páginas (com elipses se houver mais de 7 páginas)
+            const pages = [];
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              pages.push(1);
+              let left = Math.max(2, this.pagination.current - 1);
+              let right = Math.min(totalPages - 1, this.pagination.current + 1);
+
+              if (this.pagination.current <= 3) {
+                left = 2;
+                right = 4;
+              } else if (this.pagination.current >= totalPages - 2) {
+                left = totalPages - 3;
+                right = totalPages - 1;
+              }
+
+              if (left > 2) pages.push('...');
+              for (let i = left; i <= right; i++) pages.push(i);
+              if (right < totalPages - 1) pages.push('...');
+              pages.push(totalPages);
+            }
+
+            pages.forEach(p => {
+              if (p === '...') {
+                const dots = document.createElement('span');
+                dots.className = 'w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-xs font-bold text-slate-500';
+                dots.textContent = '...';
+                pagesContainer.appendChild(dots);
+              } else {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = p;
+                btn.title = `Ir para página ${p}`;
+                if (p === this.pagination.current) {
+                  btn.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-md shadow-amber-500/25 ring-1 ring-amber-400 cursor-default';
+                } else {
+                  btn.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700 hover:text-white font-bold text-xs sm:text-sm transition flex items-center justify-center shadow-sm';
+                  btn.onclick = () => {
+                    this.pagination.current = p;
+                    this.renderMovies();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  };
+                }
+                pagesContainer.appendChild(btn);
+              }
+            });
+          }
+        } else {
+          pagCtl.classList.add('hidden');
+          pagCtl.classList.remove('flex');
+        }
+
+        // Render Cards
+        grid.innerHTML=''; list.innerHTML='';
+        pageData.forEach(m => {
+          const p = pMap[m.id] || {};
+          const isDC = m.editora==='DC';
+          const pubCol = isDC ? 'bg-blue-600' : 'bg-red-600';
+
+          // GRID ITEM
+          const card = document.createElement('div');
+          card.className = `group bg-slate-900 border ${p.visto ? 'border-emerald-500/40' : 'border-slate-800'} hover:border-slate-600 rounded-xl overflow-hidden flex flex-col cursor-pointer transition-colors relative shadow-sm hover:shadow-lg card-gpu`;
+          card.onclick = () => this.openDetailModal(m.id);
+          card.innerHTML = `
+            <div class="relative w-full aspect-[2/3] bg-slate-950 overflow-hidden">
+              <img src="${m.poster_url}" alt="${m.titulo_pt}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60'">
+              
+              <!-- Selo Editora -->
+              <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-black uppercase text-white shadow ${pubCol}">${m.editora}</span>
+
+              <!-- Botões de Ação Verticais (Topo Lateral Direito) -->
+              <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-20">
+                <!-- Já Visto -->
+                <button onclick="window.app.toggleAction('${m.id}','visto',event)" 
+                        title="${p.visto ? 'Marcado como visto' : 'Marcar como visto'}" 
+                        class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all duration-200 shadow-md ${p.visto ? 'bg-emerald-500 text-white ring-1 ring-emerald-400 scale-105' : 'bg-slate-950/80 hover:bg-slate-900 text-slate-300 hover:text-white border border-white/15 hover:border-white/30 hover:scale-110'}">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+
+                <!-- Favorito -->
+                <button onclick="window.app.toggleAction('${m.id}','favorito',event)" 
+                        title="${p.favorito ? 'Favoritado' : 'Marcar como favorito'}" 
+                        class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all duration-200 shadow-md ${p.favorito ? 'bg-amber-500 text-slate-950 ring-1 ring-amber-300 scale-105' : 'bg-slate-950/80 hover:bg-slate-900 text-slate-300 hover:text-amber-400 border border-white/15 hover:border-white/30 hover:scale-110'}">
+                  <i class="fa-solid fa-star"></i>
+                </button>
+
+                <!-- Adicionar à Lista -->
+                <button onclick="window.app.toggleAction('${m.id}','watchlist',event)" 
+                        title="${p.watchlist ? 'Na lista' : 'Adicionar à lista'}" 
+                        class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all duration-200 shadow-md ${p.watchlist ? 'bg-sky-500 text-white ring-1 ring-sky-300 scale-105' : 'bg-slate-950/80 hover:bg-slate-900 text-slate-300 hover:text-sky-400 border border-white/15 hover:border-white/30 hover:scale-110'}">
+                  <i class="fa-solid fa-bookmark"></i>
+                </button>
+              </div>
+
+              <!-- Barra Inferior do Pôster: Ano e Duração (e Nota se houver) -->
+              <div class="absolute bottom-0 inset-x-0 p-2.5 pt-7 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex items-center justify-between text-[11px] font-semibold text-slate-300">
+                <span>${m.ano}</span>
+                ${p.nota > 0 ? `<span class="text-amber-400 text-[10px] font-bold flex items-center gap-0.5"><i class="fa-solid fa-star text-[9px]"></i>${p.nota}</span>` : ''}
+                <span>${m.duracao_minutos} min</span>
+              </div>
+            </div>
+
+            <!-- Abaixo do pôster: Apenas o nome do filme -->
+            <div class="p-3 flex-1 flex flex-col justify-start">
+              <h3 class="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug group-hover:text-cyan-400 transition" title="${m.titulo_pt}">
+                ${m.titulo_pt}
+              </h3>
+            </div>
+          `;
+          grid.appendChild(card);
+
+          // LIST ITEM
+          const row = document.createElement('div');
+          row.className = `group bg-slate-900 border ${p.visto ? 'border-emerald-500/30' : 'border-slate-800'} rounded-xl p-2.5 flex items-center justify-between gap-3 hover:border-slate-700 transition cursor-pointer`;
+          row.onclick = () => this.openDetailModal(m.id);
+          row.innerHTML = `
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <span class="w-16 text-center shrink-0 px-2 py-0.5 rounded text-[10px] font-black uppercase text-white ${pubCol}">${m.editora}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2"><h3 class="text-xs font-bold text-white truncate group-hover:text-cyan-400">${m.titulo_pt}</h3><span class="text-[11px] text-slate-500">(${m.ano})</span></div>
+                <div class="hidden sm:flex items-center gap-2 text-[10px] text-slate-400 mt-0.5"><span>${m.duracao_minutos} min</span><span>•</span><span class="truncate">${(m.personagens_principais||[]).join(', ')}</span></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              ${p.nota>0 ? `<span class="hidden sm:inline text-xs font-bold text-amber-400 mr-2"><i class="fa-solid fa-star text-[10px]"></i> ${p.nota}</span>` : ''}
+              <button onclick="window.app.toggleAction('${m.id}','watchlist',event)" class="w-8 h-8 rounded border transition ${p.watchlist ? 'bg-sky-500/20 border-sky-500 text-sky-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}"><i class="fa-solid fa-bookmark text-xs"></i></button>
+              <button onclick="window.app.toggleAction('${m.id}','favorito',event)" class="w-8 h-8 rounded border transition ${p.favorito ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}"><i class="fa-solid fa-star text-xs"></i></button>
+              <button onclick="window.app.toggleAction('${m.id}','visto',event)" class="w-8 h-8 rounded border transition ${p.visto ? 'bg-emerald-500 border-emerald-500 text-white font-bold' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'}"><i class="fa-solid fa-check text-xs"></i></button>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+      }
+
+      toggleAction(mid, field, e) {
+        if(e) e.stopPropagation();
+        const uid = this.db.getActiveUserId();
+        const cur = this.db.getUserMovieProgress(uid, mid);
+        this.db.saveUserMovieProgress(uid, mid, { [field]: !cur[field] });
+        this.updateStats(); this.renderMovies();
+        if(this.modalTargetMovieId === mid) this.updateDetailModalBtns();
+      }
+
+      openDetailModal(mid) {
+        this.modalTargetMovieId = mid;
+        const m = this.db.getCatalog().find(x=>x.id===mid);
+        if(!m) return;
+
+        document.getElementById('detailPoster').src = m.poster_url;
+        const b = document.getElementById('detailModalBody');
+        b.innerHTML = `
+          <!-- Cabeçalho Superior: Editora e Botão Fechar -->
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase text-white shadow ${m.editora==='DC'?'bg-blue-600':'bg-red-600'}">${m.editora}</span>
+            <button onclick="window.app.closeDetailModal()" class="text-slate-400 hover:text-white transition p-1 text-lg flex items-center justify-center" title="Fechar">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Título e Subtítulo -->
+          <div class="mt-2.5">
+            <h2 class="text-xl sm:text-2xl font-bold text-white leading-tight tracking-tight">${m.titulo_pt}</h2>
+            ${m.titulo_original ? `<div class="text-xs sm:text-sm text-slate-400 italic mt-0.5">${m.titulo_original}</div>` : ''}
+          </div>
+
+          <!-- Metadados em Pills: Ano, Duração, Selo/Universo -->
+          <div class="flex items-center gap-2 mt-3 flex-wrap">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs font-semibold text-slate-300">${m.ano}</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs font-semibold text-slate-300">${m.duracao_minutos} min</span>
+            ${m.universo_selo ? `<span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-cyan-800/50 text-cyan-400 text-xs font-semibold">${m.universo_selo}</span>` : ''}
+            ${m.classificacao_etaria ? `<span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs text-slate-400 font-semibold">${m.classificacao_etaria}</span>` : ''}
+          </div>
+
+          <!-- Sinopse -->
+          <div class="mt-4">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Sinopse</h4>
+            <p class="text-xs sm:text-sm leading-relaxed text-slate-300 text-justify">${m.sinopse || 'Sem sinopse disponível.'}</p>
+          </div>
+
+          <!-- Personagens -->
+          <div class="mt-4">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Personagens</h4>
+            <div class="flex flex-wrap gap-1.5">
+              ${(m.personagens_principais||[]).map(x=>`<span class="px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-xs text-slate-300">${x}</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Linha Divisória -->
+          <div class="border-t border-slate-800/80 my-4"></div>
+
+          <!-- Sua Avaliação -->
+          <div>
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sua Avaliação</h4>
+            <div id="modalStars" class="flex items-center gap-2 text-2xl"></div>
+          </div>
+
+          <!-- Linha Divisória -->
+          <div class="border-t border-slate-800/80 my-4"></div>
+
+          <!-- Ações Rápidas Inferiores -->
+          <div class="flex items-center gap-2 sm:gap-3" id="modalQuickActions"></div>
+        `;
+        this.updateDetailModalBtns();
+        
+        document.getElementById('movieDetailModal').classList.remove('hidden');
+        document.getElementById('movieDetailModal').classList.add('flex');
+      }
+
+      updateDetailModalBtns() {
+        const mid = this.modalTargetMovieId;
+        if(!mid) return;
+        const p = this.db.getUserMovieProgress(this.db.getActiveUserId(), mid);
+        
+        const qAct = document.getElementById('modalQuickActions');
+        if(qAct) {
+          qAct.innerHTML = `
+            <button onclick="window.app.toggleAction('${mid}','watchlist')" 
+                    class="flex-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition border flex items-center justify-center gap-2 ${
+                      p.watchlist 
+                        ? 'bg-sky-500 border-sky-400 text-white shadow-md shadow-sky-950/40' 
+                        : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700/80 hover:text-white'
+                    }">
+              <i class="fa-solid fa-bookmark"></i>
+              <span>Na Lista</span>
+            </button>
+
+            <button onclick="window.app.toggleAction('${mid}','favorito')" 
+                    class="flex-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition border flex items-center justify-center gap-2 ${
+                      p.favorito 
+                        ? 'bg-amber-500 border-amber-400 text-slate-950 font-bold shadow-md shadow-amber-950/40' 
+                        : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700/80 hover:text-white'
+                    }">
+              <i class="fa-solid fa-star"></i>
+              <span>Favorito</span>
+            </button>
+
+            <button onclick="window.app.toggleAction('${mid}','visto')" 
+                    class="flex-1 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition border flex items-center justify-center gap-2 ${
+                      p.visto 
+                        ? 'bg-emerald-600 border-emerald-400 text-white shadow-md shadow-emerald-950/40' 
+                        : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700/80 hover:text-white'
+                    }">
+              <i class="fa-solid fa-check"></i>
+              <span>${p.visto ? 'Já Assisti' : 'Marcar Visto'}</span>
+            </button>
+          `;
+        }
+
+        const st = document.getElementById('modalStars');
+        if(st) {
+          st.innerHTML = '';
+          const currentNota = p.nota || 0;
+          for(let i=1; i<=5; i++){
+            const s = document.createElement('i');
+            const isFilled = i <= currentNota;
+            s.className = `cursor-pointer transition-all duration-150 hover:scale-125 select-none ${
+              isFilled ? 'fa-solid fa-star text-amber-400' : 'fa-regular fa-star text-slate-600 hover:text-amber-400'
+            }`;
+            s.title = `${i} estrela${i>1?'s':''}`;
+            s.onclick = () => {
+              const newNota = currentNota === i ? 0 : i;
+              this.db.saveUserMovieProgress(this.db.getActiveUserId(), mid, {
+                nota: newNota,
+                visto: newNota > 0 ? true : p.visto
+              });
+              this.updateStats();
+              this.renderMovies();
+              this.updateDetailModalBtns();
+            };
+            st.appendChild(s);
+          }
+          if(currentNota > 0) {
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'text-[11px] text-slate-500 hover:text-red-400 ml-2 font-medium transition flex items-center gap-1';
+            clearBtn.title = 'Remover avaliação';
+            clearBtn.innerHTML = '<i class="fa-solid fa-xmark text-xs"></i><span>Limpar</span>';
+            clearBtn.onclick = () => {
+              this.db.saveUserMovieProgress(this.db.getActiveUserId(), mid, { nota: 0 });
+              this.updateStats();
+              this.renderMovies();
+              this.updateDetailModalBtns();
+            };
+            st.appendChild(clearBtn);
+          }
+        }
+      }
+
+      closeDetailModal() { document.getElementById('movieDetailModal').classList.add('hidden'); document.getElementById('movieDetailModal').classList.remove('flex'); this.modalTargetMovieId = null; }
+
+      openPosterEditModal() {
+        this.pendingPosterDataUrl = null;
+        document.getElementById('newPosterUrlInput').value = '';
+        document.getElementById('posterFileInput').value = '';
+        document.getElementById('posterPreviewImg').src = '';
+        document.getElementById('posterPreviewContainer').classList.add('hidden');
+        document.getElementById('posterPreviewContainer').classList.remove('flex');
+        document.getElementById('posterDropPrompt').classList.remove('hidden');
+        const dropzone = document.getElementById('posterDropzone');
+        if (dropzone) dropzone.classList.remove('border-blue-500', 'bg-blue-500/10');
+        document.getElementById('imageEditModal').classList.remove('hidden');
+        document.getElementById('imageEditModal').classList.add('flex');
+      }
+
+      closePosterEditModal() {
+        document.getElementById('imageEditModal').classList.add('hidden');
+        document.getElementById('imageEditModal').classList.remove('flex');
+        this.pendingPosterDataUrl = null;
+      }
+
+      setPosterPreview(dataUrl) {
+        this.pendingPosterDataUrl = dataUrl;
+        document.getElementById('posterPreviewImg').src = dataUrl;
+        document.getElementById('posterPreviewContainer').classList.remove('hidden');
+        document.getElementById('posterPreviewContainer').classList.add('flex');
+        document.getElementById('posterDropPrompt').classList.add('hidden');
+      }
+
+      processImageFile(file, callback) {
+        if (!file || !file.type.startsWith('image/')) {
+          this.showToast('Por favor, selecione um arquivo de imagem válido.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            // Cartazes de cinema têm proporção 2:3. Dimensão ideal para tela: 400x600px.
+            const maxW = 400, maxH = 600;
+            let w = img.width, h = img.height;
+            if (w > maxW || h > maxH) {
+              if (w / maxW > h / maxH) {
+                h = Math.round((h * maxW) / w);
+                w = maxW;
+              } else {
+                w = Math.round((w * maxH) / h);
+                h = maxH;
+              }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            // Qualidade 0.82 produz imagens super nítidas pesando apenas ~35-50KB
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            callback(dataUrl);
+          };
+          img.onerror = () => {
+            this.showToast('Erro ao processar imagem.');
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      savePosterEdit() {
+        const finalUrl = this.pendingPosterDataUrl || document.getElementById('newPosterUrlInput').value.trim();
+        if(!finalUrl) {
+          this.showToast('Nenhuma imagem foi selecionada ou colada.');
+          return;
+        }
+        if(!this.modalTargetMovieId) {
+          this.showToast('Filme não identificado para salvar.');
+          return;
+        }
+
+        try {
+          let cat = this.db.getCatalog();
+          const targetId = String(this.modalTargetMovieId);
+          const idx = cat.findIndex(x => String(x.id) === targetId);
+          if(idx >= 0) {
+            cat[idx].poster_url = finalUrl;
+            this.db.saveCatalog(cat);
+            this.renderMovies();
+            this.openDetailModal(this.modalTargetMovieId); // Atualiza poster do modal
+            this.showToast('Pôster salvo com sucesso no banco de dados!');
+          } else {
+            this.showToast('Filme não encontrado no catálogo.');
+            return;
+          }
+        } catch(err) {
+          console.error('Erro ao salvar pôster:', err);
+          this.showToast('Erro ao salvar pôster: ' + (err.message || 'Falha inesperada'));
+          return;
+        }
+        this.closePosterEditModal();
+      }
+
+      updateStats() {
+        const cat = this.db.getCatalog();
+        const pList = this.db.getUserAllProgress(this.db.getActiveUserId());
+        let seen = 0, mins = 0, dc = 0, mv = 0;
+        let totalDc = 0, totalMv = 0;
+        const seenIds = new Set(pList.filter(p=>p.visto).map(p=>String(p.filme_id)));
+
+        cat.forEach(m => {
+          if (m.editora === 'DC') totalDc++;
+          if (m.editora === 'Marvel') totalMv++;
+          if(seenIds.has(String(m.id))) {
+            seen++; mins += (m.duracao_minutos || 0);
+            if(m.editora==='DC') dc++;
+            if(m.editora==='Marvel') mv++;
+          }
+        });
+
+        const pct = cat.length > 0 ? Math.round((seen / cat.length) * 100) : 0;
+        const dcPct = totalDc > 0 ? Math.round((dc / totalDc) * 100) : 0;
+        const mvPct = totalMv > 0 ? Math.round((mv / totalMv) * 100) : 0;
+
+        const elPct = document.getElementById('statWatchedPct');
+        if (elPct) elPct.textContent = `${pct}%`;
+        const elFrac = document.getElementById('statWatchedFraction');
+        if (elFrac) elFrac.textContent = `(${seen}/${cat.length})`;
+        const elBar = document.getElementById('statWatchedBar');
+        if (elBar) elBar.style.width = `${pct}%`;
+
+        const elTime = document.getElementById('statTotalTime');
+        if (elTime) elTime.textContent = `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`;
+
+        const elDc = document.getElementById('statDcCount');
+        if (elDc) elDc.textContent = `${dc}`;
+        const elDcFrac = document.getElementById('statDcFraction');
+        if (elDcFrac) elDcFrac.textContent = `(${dc}/${totalDc})`;
+        const elDcBar = document.getElementById('statDcBar');
+        if (elDcBar) elDcBar.style.width = `${dcPct}%`;
+
+        const elMv = document.getElementById('statMarvelCount');
+        if (elMv) elMv.textContent = `${mv}`;
+        const elMvFrac = document.getElementById('statMarvelFraction');
+        if (elMvFrac) elMvFrac.textContent = `(${mv}/${totalMv})`;
+        const elMvBar = document.getElementById('statMarvelBar');
+        if (elMvBar) elMvBar.style.width = `${mvPct}%`;
+
+        this.updateBadgesDrawer(cat, seenIds);
+      }
+
+      updateBadgesDrawer(cat, seenIds) {
+        const heroMap = {};
+        cat.forEach(m => {
+          (m.personagens_principais||[]).forEach(c => {
+            if(!heroMap[c]) heroMap[c] = { total: 0, seen: 0 };
+            heroMap[c].total++;
+            if(seenIds.has(String(m.id))) heroMap[c].seen++;
+          });
+        });
+
+        const unlocked = [], locked = [];
+        Object.keys(heroMap).forEach(h => {
+          const d = heroMap[h];
+          if(d.total > 0 && d.total === d.seen) unlocked.push({ name: h, total: d.total });
+          else locked.push({ name: h, missing: d.total - d.seen, pct: Math.round((d.seen/d.total)*100), total: d.total, seen: d.seen });
+        });
+
+        locked.sort((a,b) => a.missing - b.missing || b.pct - a.pct);
+
+        document.getElementById('drawerConquistadasTotal').textContent = unlocked.length;
+        
+        const cUnlocked = document.getElementById('drawerUnlockedBadges'); cUnlocked.innerHTML='';
+        if(unlocked.length===0) cUnlocked.innerHTML='<div class="col-span-2 text-center text-xs text-slate-500 py-4 italic">Assista todos os filmes de um herói para desbloquear!</div>';
+        unlocked.forEach(u => {
+          cUnlocked.innerHTML += `
+            <div class="p-2 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col items-center text-center">
+              <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center shadow-inner mb-1"><i class="fa-solid fa-crown text-sm"></i></div>
+              <span class="text-[10px] font-bold text-slate-200 truncate w-full">${u.name}</span>
+              <span class="text-[8px] uppercase tracking-wider text-amber-500 font-bold">100% (${u.total})</span>
+            </div>
+          `;
+        });
+
+        const cLocked = document.getElementById('drawerNextBadges'); cLocked.innerHTML='';
+        locked.slice(0, 10).forEach(l => {
+          cLocked.innerHTML += `
+            <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl">
+              <div class="flex justify-between items-center mb-1 text-xs"><span class="font-bold text-white truncate pr-2">${l.name}</span><span class="text-cyan-400 text-[10px] font-bold whitespace-nowrap">Falta ${l.missing}</span></div>
+              <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1"><div class="bg-blue-500 h-full rounded-full" style="width:${l.pct}%"></div></div>
+              <div class="flex justify-between text-[9px] text-slate-500"><span>${l.seen}/${l.total} vistos</span><span>${l.pct}%</span></div>
+            </div>
+          `;
+        });
+      }
+
+      openDrawer() {
+        document.getElementById('drawerOverlay').classList.remove('hidden');
+        setTimeout(()=> { document.getElementById('drawerOverlay').classList.remove('opacity-0'); document.getElementById('badgeDrawer').classList.remove('translate-x-full'); }, 10);
+      }
+      closeDrawer() {
+        document.getElementById('badgeDrawer').classList.add('translate-x-full'); document.getElementById('drawerOverlay').classList.add('opacity-0');
+        setTimeout(()=> document.getElementById('drawerOverlay').classList.add('hidden'), 300);
+      }
+
+      exportUserData() {
+        const u = this.db.getUserById(this.db.getActiveUserId());
+        const data = { version: "1.1", user: u, progresso: this.db.getUserAllProgress(u.id) };
+        this.downloadFile(`progresso_${u.nome.replace(/\s+/g,'_').toLowerCase()}.json`, JSON.stringify(data, null, 2));
+      }
+      exportCatalogData() {
+        this.downloadFile('catalogo.json', JSON.stringify(this.db.getCatalog(), null, 2));
+      }
+      importUserData(e) {
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+          try {
+            const json = JSON.parse(ev.target.result);
+            const p = json.progresso || json;
+            if(!Array.isArray(p)) throw new Error('Formato invalido');
+            this.db.importUserProgress(this.db.getActiveUserId(), p);
+            this.showToast('Progresso restaurado!');
+            document.getElementById('closeDataModalBtn').click(); this.renderAll();
+          } catch(err) { this.showToast('Erro no arquivo JSON.'); }
+        };
+        r.readAsText(f); e.target.value='';
+      }
+      importCatalogData(e) {
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+          try {
+            const json = JSON.parse(ev.target.result);
+            if(!Array.isArray(json) || !json[0].id) throw new Error();
+            this.db.saveCatalog(json);
+            this.showToast('Catálogo atualizado!');
+            document.getElementById('closeDataModalBtn').click(); this.renderAll();
+          } catch(err) { this.showToast('Erro no formato do catálogo.'); }
+        };
+        r.readAsText(f); e.target.value='';
+      }
+      downloadFile(name, content) {
+        const b = new Blob([content], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+
+      renderAll() {
+        this.renderUserBar();
+        this.updateStats();
+        this.renderCharacterChips();
+        this.renderMovies();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { window.app = new App(); });
+  </script>
+</body>
+</html>
