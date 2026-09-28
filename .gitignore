@@ -57,3 +57,5 @@ progresso_*.json
 # Arquivos temporários de IDEs e agentes
 .tempmediaStorage/
 scratch/
+
+users/

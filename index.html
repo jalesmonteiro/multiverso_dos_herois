@@ -174,19 +174,19 @@
           </div>
         </div>
 
-        <!-- Botão Abrir Heróis e Botão de Limpeza Rápida com Caixa Fechada -->
+        <!-- Botão de Limpeza Rápida e Botão Abrir Heróis -->
         <div class="flex items-center gap-2">
+          <!-- Botão de Remoção Rápida com Um Clique (ativo mesmo com a caixa fechada - à esquerda) -->
+          <button id="clearHeroQuickBtn" class="hidden px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-red-500/20 hover:border-red-500/40 text-amber-400 hover:text-red-400 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm group" title="Remover filtro de herói com um clique">
+            <i class="fa-solid fa-xmark text-xs group-hover:scale-110 transition-transform"></i>
+            <span id="clearHeroQuickName" class="max-w-[100px] truncate text-[11px] font-bold"></span>
+          </button>
+
           <button id="btnToggleHeros" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-2">
             <i class="fa-solid fa-mask"></i> 
             <span>Filtrar Heróis</span>
             <span id="heroFilterActiveBadge" class="px-1.5 py-0.5 bg-slate-950/80 border border-slate-700 text-slate-400 font-semibold rounded-md text-[9px] min-w-[36px] text-center">0 ativo</span>
             <i id="heroFilterChevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
-          </button>
-
-          <!-- Botão de Remoção Rápida com Um Clique (ativo mesmo com a caixa fechada) -->
-          <button id="clearHeroQuickBtn" class="hidden px-2.5 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-red-500/20 hover:border-red-500/40 text-amber-400 hover:text-red-400 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm group" title="Remover filtro de herói com um clique">
-            <i class="fa-solid fa-xmark text-xs group-hover:scale-110 transition-transform"></i>
-            <span id="clearHeroQuickName" class="max-w-[100px] truncate text-[11px] font-bold"></span>
           </button>
         </div>
 
@@ -518,7 +518,10 @@
           </div>
         </div>
 
-        <div class="pt-2 text-right">
+        <div class="pt-2 flex justify-between items-center gap-2">
+          <button id="btnSyncRemoteCatalogModal" class="px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg font-semibold transition text-[10px] flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i> Atualizar do link oficial
+          </button>
           <button id="btnResetDefaultCatalog" class="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded-lg font-semibold transition text-[10px]">
             Restaurar os 12 filmes padrão
           </button>
@@ -844,8 +847,10 @@
         this.renderAll();
 
         // Inicializa o IndexedDB de forma assíncrona e sincroniza
-        this.db.initIdb().then(() => {
+        this.db.initIdb().then(async () => {
           this.renderAll();
+          // Atualiza o catálogo automaticamente pelo link oficial ao iniciar
+          await this.syncRemoteCatalog();
         });
       }
 
@@ -1056,6 +1061,21 @@
         document.getElementById('btnExportCatalog').onclick = () => this.exportCatalogData();
         document.getElementById('importUserProgressFile').onchange = (e) => this.importUserData(e);
         document.getElementById('importCatalogFile').onchange = (e) => this.importCatalogData(e);
+        const btnSyncRemote = document.getElementById('btnSyncRemoteCatalogModal');
+        if (btnSyncRemote) {
+          btnSyncRemote.onclick = async () => {
+            btnSyncRemote.disabled = true;
+            btnSyncRemote.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+            const ok = await this.syncRemoteCatalog();
+            btnSyncRemote.disabled = false;
+            btnSyncRemote.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Atualizar do link oficial';
+            if (ok) {
+              this.showToast('Catálogo sincronizado com o link oficial!');
+            } else {
+              this.showToast('Não foi possível conectar ao link oficial.');
+            }
+          };
+        }
         document.getElementById('btnResetDefaultCatalog').onclick = () => this.confirmAction('Restaurar Catálogo', 'Esta ação substituirá os filmes atuais pelos 12 da lista base. Deseja continuar?', () => {
           this.db.resetCatalog();
           this.showToast('Catálogo restaurado!');
@@ -1867,6 +1887,51 @@
         const b = new Blob([content], { type: 'application/json' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+      async syncRemoteCatalog() {
+        const REMOTE_URL = 'https://jalesmonteiro.github.io/multiverso_dos_herois/docs/catalogo.json';
+        try {
+          const res = await fetch(REMOTE_URL, { cache: 'no-cache' });
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          const remoteCatalog = await res.json();
+          if (Array.isArray(remoteCatalog) && remoteCatalog.length > 0 && remoteCatalog[0].id) {
+            // Preserva pôsteres customizados salvos localmente pelo usuário caso existam em data:image
+            const currentCatalog = this.db.getCatalog();
+            const localCustomPosters = {};
+            currentCatalog.forEach(m => {
+              if (m.poster_url && m.poster_url.startsWith('data:image/')) {
+                localCustomPosters[m.id] = m.poster_url;
+              }
+            });
+
+            const mergedCatalog = remoteCatalog.map(item => {
+              if (localCustomPosters[item.id]) {
+                return { ...item, poster_url: localCustomPosters[item.id] };
+              }
+              return item;
+            });
+
+            this.db.saveCatalog(mergedCatalog);
+            this.renderAll();
+            console.log(`Catálogo atualizado com sucesso do link oficial (${mergedCatalog.length} filmes).`);
+            return true;
+          }
+        } catch (err) {
+          console.warn('Não foi possível atualizar o catálogo pelo link remoto:', err);
+          // Fallback para arquivo local relativo se disponível
+          try {
+            const localRes = await fetch('./docs/catalogo.json');
+            if (localRes.ok) {
+              const localCatalog = await localRes.json();
+              if (Array.isArray(localCatalog) && localCatalog.length > 0 && localCatalog[0].id) {
+                this.db.saveCatalog(localCatalog);
+                this.renderAll();
+                return true;
+              }
+            }
+          } catch(e) {}
+        }
+        return false;
       }
 
       renderAll() {
