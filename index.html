@@ -65,6 +65,12 @@
         </h1>
       </div>
 
+      <!-- Status de Sincronização do Catálogo Oficial -->
+      <div id="syncStatusBadge" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold shadow-sm transition-all duration-300">
+        <i id="syncStatusIcon" class="fa-solid fa-arrows-rotate fa-spin text-xs"></i>
+        <span id="syncStatusText" class="truncate max-w-[170px] sm:max-w-none">Baixando catálogo oficial...</span>
+      </div>
+
       <!-- Utilities -->
       <div class="flex items-center gap-3">
         
@@ -208,7 +214,13 @@
     <!-- MOVIE LISTINGS -->
     <section class="space-y-4">
       <div class="flex items-center justify-between text-xs text-slate-400 px-1">
-        <span id="filteredCountLabel">Exibindo 0 de 0 filmes</span>
+        <div class="flex items-center gap-3">
+          <span id="filteredCountLabel">Exibindo 0 de 0 filmes</span>
+          <span id="catalogSyncMiniStatus" class="hidden items-center gap-1.5 text-blue-400 font-semibold text-[11px] animate-pulse">
+            <i class="fa-solid fa-arrows-rotate fa-spin text-[10px]"></i>
+            <span id="catalogSyncMiniText">Atualizando catálogo oficial...</span>
+          </span>
+        </div>
         <button id="resetAllFiltersBtn" class="text-slate-400 hover:text-amber-400 transition hidden">
           <i class="fa-solid fa-rotate-left mr-1"></i>Limpar filtros
         </button>
@@ -506,7 +518,10 @@
         </div>
 
         <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-2">
-          <div class="font-bold text-slate-200">Catálogo Base de Filmes</div>
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200">Catálogo de Filmes</span>
+            <span id="dataModalLastSync" class="text-[10px] text-slate-400">Nunca sincronizado</span>
+          </div>
           <div class="flex gap-2 pt-1">
             <button id="btnExportCatalog" class="flex-1 px-2 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition">
               <i class="fa-solid fa-file-export"></i> Baixar Catálogo
@@ -574,6 +589,7 @@
         this._users = [];
         this._progress = [];
         this._activeUserId = null;
+        this._lastCatalogSync = null;
 
         // Carga inicial síncrona do localStorage (garante renderização instantânea)
         this.loadFromLocalStorage();
@@ -608,6 +624,12 @@
           this._progress = rawProg ? JSON.parse(rawProg) : [];
         } catch(e) {
           this._progress = [];
+        }
+
+        try {
+          this._lastCatalogSync = localStorage.getItem(this.PREFIX + 'last_sync') || null;
+        } catch(e) {
+          this._lastCatalogSync = null;
         }
       }
 
@@ -676,6 +698,13 @@
             this._activeUserId = idbActive.value;
           } else if (this._activeUserId) {
             await this.idbPut('settings', { key: 'active_user', value: this._activeUserId });
+          }
+
+          const idbSync = await this.idbGet('settings', 'last_catalog_sync');
+          if (idbSync && idbSync.value) {
+            this._lastCatalogSync = idbSync.value;
+          } else if (this._lastCatalogSync) {
+            await this.idbPut('settings', { key: 'last_catalog_sync', value: this._lastCatalogSync });
           }
 
           // Limpa chaves pesadas do localStorage para liberar permanentemente os 5MB de quota
@@ -831,6 +860,16 @@
         recs.forEach(r => this._progress.push({ ...r, id: `${uid}_${r.filme_id}`, usuario_id: uid }));
         this.idbSaveAll('progress', this._progress);
       }
+
+      getLastCatalogSync() {
+        return this._lastCatalogSync;
+      }
+
+      setLastCatalogSync(ts = new Date().toISOString()) {
+        this._lastCatalogSync = ts;
+        try { localStorage.setItem(this.PREFIX + 'last_sync', ts); } catch(e) {}
+        this.idbPut('settings', { key: 'last_catalog_sync', value: ts });
+      }
     }
 
     class App {
@@ -849,8 +888,8 @@
         // Inicializa o IndexedDB de forma assíncrona e sincroniza
         this.db.initIdb().then(async () => {
           this.renderAll();
-          // Atualiza o catálogo automaticamente pelo link oficial ao iniciar
-          await this.syncRemoteCatalog();
+          // Atualiza o catálogo automaticamente pelo link oficial ao iniciar (uma vez ao dia)
+          await this.syncRemoteCatalog({ force: false });
         });
       }
 
@@ -1055,7 +1094,12 @@
         };
 
         // Data Modal
-        document.getElementById('openDataModalBtn').onclick = () => { document.getElementById('dataModalActiveUser').textContent = this.db.getUserById(this.db.getActiveUserId()).nome; document.getElementById('dataModal').classList.remove('hidden'); document.getElementById('dataModal').classList.add('flex'); };
+        document.getElementById('openDataModalBtn').onclick = () => {
+          document.getElementById('dataModalActiveUser').textContent = this.db.getUserById(this.db.getActiveUserId()).nome;
+          this.updateDataModalSyncLabel();
+          document.getElementById('dataModal').classList.remove('hidden');
+          document.getElementById('dataModal').classList.add('flex');
+        };
         document.getElementById('closeDataModalBtn').onclick = () => { document.getElementById('dataModal').classList.add('hidden'); document.getElementById('dataModal').classList.remove('flex'); };
         document.getElementById('btnExportUserProgress').onclick = () => this.exportUserData();
         document.getElementById('btnExportCatalog').onclick = () => this.exportCatalogData();
@@ -1066,9 +1110,10 @@
           btnSyncRemote.onclick = async () => {
             btnSyncRemote.disabled = true;
             btnSyncRemote.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
-            const ok = await this.syncRemoteCatalog();
+            const ok = await this.syncRemoteCatalog({ force: true });
             btnSyncRemote.disabled = false;
             btnSyncRemote.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Atualizar do link oficial';
+            this.updateDataModalSyncLabel();
             if (ok) {
               this.showToast('Catálogo sincronizado com o link oficial!');
             } else {
@@ -1888,12 +1933,140 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
       }
-      async syncRemoteCatalog() {
+      setSyncBadge(state, message) {
+        const badge = document.getElementById('syncStatusBadge');
+        const icon = document.getElementById('syncStatusIcon');
+        const text = document.getElementById('syncStatusText');
+        const mini = document.getElementById('catalogSyncMiniStatus');
+        const miniText = document.getElementById('catalogSyncMiniText');
+
+        if (!badge || !icon || !text) return;
+
+        if (this.syncBadgeTimer) {
+          clearTimeout(this.syncBadgeTimer);
+          this.syncBadgeTimer = null;
+        }
+
+        if (state === 'loading') {
+          badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold shadow-sm transition-all duration-300';
+          icon.className = 'fa-solid fa-arrows-rotate fa-spin text-xs';
+          text.textContent = message || 'Carregando catálogo oficial...';
+          badge.classList.remove('hidden', 'opacity-0');
+          if (mini && miniText) {
+            miniText.textContent = message || 'Carregando catálogo oficial...';
+            mini.classList.remove('hidden');
+            mini.classList.add('inline-flex');
+          }
+        } else if (state === 'success') {
+          badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold shadow-sm transition-all duration-300';
+          icon.className = 'fa-solid fa-circle-check text-xs text-emerald-400';
+          text.textContent = message || 'Catálogo atualizado!';
+          badge.classList.remove('hidden', 'opacity-0');
+          if (mini) {
+            mini.classList.add('hidden');
+            mini.classList.remove('inline-flex');
+          }
+          this.syncBadgeTimer = setTimeout(() => {
+            badge.classList.add('opacity-0');
+            setTimeout(() => badge.classList.add('hidden'), 500);
+          }, 3500);
+        } else if (state === 'error') {
+          badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold shadow-sm transition-all duration-300';
+          icon.className = 'fa-solid fa-circle-info text-xs text-amber-400';
+          text.textContent = message || 'Usando catálogo em cache local';
+          badge.classList.remove('hidden', 'opacity-0');
+          if (mini) {
+            mini.classList.add('hidden');
+            mini.classList.remove('inline-flex');
+          }
+          this.syncBadgeTimer = setTimeout(() => {
+            badge.classList.add('opacity-0');
+            setTimeout(() => badge.classList.add('hidden'), 500);
+          }, 4000);
+        }
+      }
+
+      shouldAutoSyncCatalog() {
+        const lastSync = this.db.getLastCatalogSync();
+        if (!lastSync) return true;
+        try {
+          const lastDate = new Date(lastSync);
+          const now = new Date();
+          // Retorna verdadeiro se for um dia do calendário diferente ou se já passaram 24h
+          const isDifferentDay = now.toDateString() !== lastDate.toDateString();
+          const diffHours = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+          return isDifferentDay || diffHours >= 24;
+        } catch(e) {
+          return true;
+        }
+      }
+
+      updateDataModalSyncLabel() {
+        const syncLabel = document.getElementById('dataModalLastSync');
+        if (!syncLabel) return;
+        const lastSync = this.db.getLastCatalogSync();
+        if (lastSync) {
+          const d = new Date(lastSync);
+          syncLabel.textContent = `Atualizado em ${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        } else {
+          syncLabel.textContent = 'Nunca sincronizado';
+        }
+      }
+
+      async syncRemoteCatalog({ force = false } = {}) {
+        // Se for verificação automática e já tiver sincronizado hoje, não faz nada e não exibe nenhuma mensagem
+        if (!force && !this.shouldAutoSyncCatalog()) {
+          console.log('Catálogo já verificado hoje. Sincronização automática ignorada.');
+          return false;
+        }
+
         const REMOTE_URL = 'https://jalesmonteiro.github.io/multiverso_dos_herois/docs/catalogo.json';
+        this.setSyncBadge('loading', 'Conectando ao catálogo oficial...');
+
         try {
           const res = await fetch(REMOTE_URL, { cache: 'no-cache' });
-          if (!res.ok) throw new Error(`Status ${res.status}`);
-          const remoteCatalog = await res.json();
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          let remoteCatalog;
+          const contentLength = res.headers.get('content-length');
+          const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+
+          // Se ReadableStream estiver disponível, mede e exibe o progresso em tempo real
+          if (res.body && window.ReadableStream) {
+            const reader = res.body.getReader();
+            let received = 0;
+            const chunks = [];
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              received += value.length;
+
+              const mbRec = (received / (1024 * 1024)).toFixed(1);
+              if (totalBytes > 0) {
+                const mbTot = (totalBytes / (1024 * 1024)).toFixed(1);
+                const pct = Math.min(100, Math.round((received / totalBytes) * 100));
+                this.setSyncBadge('loading', `Baixando catálogo oficial (${pct}% • ${mbRec}/${mbTot} MB)...`);
+              } else {
+                this.setSyncBadge('loading', `Baixando catálogo oficial (${mbRec} MB)...`);
+              }
+            }
+
+            this.setSyncBadge('loading', 'Processando catálogo recebido...');
+            const allChunks = new Uint8Array(received);
+            let pos = 0;
+            for (const chunk of chunks) {
+              allChunks.set(chunk, pos);
+              pos += chunk.length;
+            }
+            const text = new TextDecoder('utf-8').decode(allChunks);
+            remoteCatalog = JSON.parse(text);
+          } else {
+            this.setSyncBadge('loading', 'Baixando catálogo oficial...');
+            remoteCatalog = await res.json();
+          }
+
           if (Array.isArray(remoteCatalog) && remoteCatalog.length > 0 && remoteCatalog[0].id) {
             // Preserva pôsteres customizados salvos localmente pelo usuário caso existam em data:image
             const currentCatalog = this.db.getCatalog();
@@ -1912,9 +2085,14 @@
             });
 
             this.db.saveCatalog(mergedCatalog);
+            this.db.setLastCatalogSync(); // Salva no banco a data e hora da sincronização
             this.renderAll();
+            this.updateDataModalSyncLabel();
+            this.setSyncBadge('success', `Catálogo atualizado! (${mergedCatalog.length} filmes)`);
             console.log(`Catálogo atualizado com sucesso do link oficial (${mergedCatalog.length} filmes).`);
             return true;
+          } else {
+            throw new Error('Formato inválido do catálogo');
           }
         } catch (err) {
           console.warn('Não foi possível atualizar o catálogo pelo link remoto:', err);
@@ -1925,11 +2103,15 @@
               const localCatalog = await localRes.json();
               if (Array.isArray(localCatalog) && localCatalog.length > 0 && localCatalog[0].id) {
                 this.db.saveCatalog(localCatalog);
+                this.db.setLastCatalogSync(); // Salva no banco a data e hora
                 this.renderAll();
+                this.updateDataModalSyncLabel();
+                this.setSyncBadge('success', `Catálogo local carregado (${localCatalog.length} filmes)`);
                 return true;
               }
             }
           } catch(e) {}
+          this.setSyncBadge('error', 'Usando catálogo em cache local');
         }
         return false;
       }
