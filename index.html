@@ -144,7 +144,9 @@
               <option value="ano_asc" class="bg-slate-900">Ano (Mais antigo)</option>
               <option value="titulo_asc" class="bg-slate-900">Título (A - Z)</option>
               <option value="duracao_desc" class="bg-slate-900">Duração (Maior)</option>
-              <option value="nota_desc" class="bg-slate-900">Nota (Maior)</option>
+              <option value="imdb_desc" class="bg-slate-900">Nota IMDb (Maior)</option>
+              <option value="imdb_asc" class="bg-slate-900">Nota IMDb (Menor)</option>
+              <option value="nota_desc" class="bg-slate-900">Sua Avaliação (Maior)</option>
             </select>
           </div>
 
@@ -554,18 +556,18 @@
   <!-- SCRIPT COMPLETO -->
   <script>
     const DEFAULT_CATALOG = [
-      { id: "dc-1", titulo_pt: "Liga da Justiça: Crise em Duas Terras", titulo_original: "Justice League: Crisis on Two Earths", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Liga da Justiça", "Batman", "Superman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Um Lex Luthor heróico de universo paralelo recruta a Liga para lutar contra o Sindicato do Crime.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60" },
-      { id: "dc-2", titulo_pt: "Constantine: Cidade dos Demônios", titulo_original: "Constantine: City of Demons", editora: "DC", ano: 2018, duracao_minutos: 90, classificacao_etaria: "18+", universo_selo: "DCAMU", personagens_principais: ["Constantine"], generos: ["Terror", "Ocultismo"], sinopse: "Constantine usa artes das trevas para salvar uma garota em Los Angeles.", poster_url: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?w=500&q=60" },
-      { id: "dc-3", titulo_pt: "Batman: Sob o Capuz", titulo_original: "Batman: Under the Red Hood", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Batman", "Capuz Vermelho", "Coringa"], generos: ["Ação"], sinopse: "O implacável Capuz Vermelho toma Gotham e assombra o passado de Batman.", poster_url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&q=60" },
-      { id: "dc-4", titulo_pt: "Batman: O Cavaleiro das Trevas - Parte 1", titulo_original: "Batman: The Dark Knight Returns", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "Elseworlds", personagens_principais: ["Batman", "Robin"], generos: ["Distopia"], sinopse: "Bruce Wayne grisalho retorna para combater mutantes selvagens.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60" },
-      { id: "dc-5", titulo_pt: "Mulher-Maravilha: Linhagem de Sangue", titulo_original: "Wonder Woman: Bloodlines", editora: "DC", ano: 2019, duracao_minutos: 83, classificacao_etaria: "14+", universo_selo: "DCAMU", personagens_principais: ["Mulher-Maravilha"], generos: ["Ação"], sinopse: "Diana enfrenta o cartel Corporação Vilania que quer invadir Themyscira.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60" },
-      { id: "dc-6", titulo_pt: "Superman vs. A Elite", titulo_original: "Superman vs. The Elite", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Superman"], generos: ["Ação", "Drama"], sinopse: "A moral do Superman é posta em xeque por anti-heróis violentos.", poster_url: "https://images.unsplash.com/photo-1533613220915-609f661a6fe1?w=500&q=60" },
-      { id: "marvel-1", titulo_pt: "Hulk Vs. Wolverine", titulo_original: "Hulk Vs. Wolverine", editora: "Marvel", ano: 2009, duracao_minutos: 37, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk", "Wolverine", "Deadpool"], generos: ["Ação"], sinopse: "Wolverine é enviado para conter o Incrível Hulk no Canadá.", poster_url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=60" },
-      { id: "marvel-2", titulo_pt: "Planeta Hulk", titulo_original: "Planet Hulk", editora: "Marvel", ano: 2010, duracao_minutos: 81, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk"], generos: ["Ficção Científica"], sinopse: "Hulk banido chega em Sakaar e vira um gladiador lendário.", poster_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=60" },
-      { id: "marvel-3", titulo_pt: "Doutor Estranho: O Mago Supremo", titulo_original: "Doctor Strange", editora: "Marvel", ano: 2007, duracao_minutos: 95, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Doutor Estranho", "Ancião"], generos: ["Magia"], sinopse: "O cirurgião Strange viaja ao Tibete e descobre as artes ocultas.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60" },
-      { id: "marvel-4", titulo_pt: "Thor: O Filho de Asgard", titulo_original: "Thor: Tales of Asgard", editora: "Marvel", ano: 2011, duracao_minutos: 77, classificacao_etaria: "10+", universo_selo: "Animated Features", personagens_principais: ["Thor", "Loki"], generos: ["Mitologia"], sinopse: "O jovem Thor e Loki saem em busca da espada de Surtur.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60" },
-      { id: "marvel-5", titulo_pt: "Os Supremos: O Filme", titulo_original: "Ultimate Avengers", editora: "Marvel", ano: 2006, duracao_minutos: 72, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Capitão América", "Homem de Ferro", "Hulk", "Thor"], generos: ["Ação"], sinopse: "Heróis se unem para impedir uma invasão Chitauri na Terra.", poster_url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&q=60" },
-      { id: "dc-7", titulo_pt: "Liga da Justiça: Ponto de Ignição", titulo_original: "The Flashpoint Paradox", editora: "DC", ano: 2013, duracao_minutos: 81, classificacao_etaria: "16+", universo_selo: "DCAMU", personagens_principais: ["Flash", "Batman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Barry altera o tempo, criando uma realidade caótica e brutal.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60" }
+      { id: "dc-1", titulo_pt: "Liga da Justiça: Crise em Duas Terras", titulo_original: "Justice League: Crisis on Two Earths", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Liga da Justiça", "Batman", "Superman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Um Lex Luthor heróico de universo paralelo recruta a Liga para lutar contra o Sindicato do Crime.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60", nota_imdb: 7.2 },
+      { id: "dc-2", titulo_pt: "Constantine: Cidade dos Demônios", titulo_original: "Constantine: City of Demons", editora: "DC", ano: 2018, duracao_minutos: 90, classificacao_etaria: "18+", universo_selo: "DCAMU", personagens_principais: ["Constantine"], generos: ["Terror", "Ocultismo"], sinopse: "Constantine usa artes das trevas para salvar uma garota em Los Angeles.", poster_url: "https://images.unsplash.com/photo-1514533450685-4493e01d1fdc?w=500&q=60", nota_imdb: 7.5 },
+      { id: "dc-3", titulo_pt: "Batman: Sob o Capuz", titulo_original: "Batman: Under the Red Hood", editora: "DC", ano: 2010, duracao_minutos: 75, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Batman", "Capuz Vermelho", "Coringa"], generos: ["Ação"], sinopse: "O implacável Capuz Vermelho toma Gotham e assombra o passado de Batman.", poster_url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&q=60", nota_imdb: 8.0 },
+      { id: "dc-4", titulo_pt: "Batman: O Cavaleiro das Trevas - Parte 1", titulo_original: "Batman: The Dark Knight Returns", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "Elseworlds", personagens_principais: ["Batman", "Robin"], generos: ["Distopia"], sinopse: "Bruce Wayne grisalho retorna para combater mutantes selvagens.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60", nota_imdb: 7.9 },
+      { id: "dc-5", titulo_pt: "Mulher-Maravilha: Linhagem de Sangue", titulo_original: "Wonder Woman: Bloodlines", editora: "DC", ano: 2019, duracao_minutos: 83, classificacao_etaria: "14+", universo_selo: "DCAMU", personagens_principais: ["Mulher-Maravilha"], generos: ["Ação"], sinopse: "Diana enfrenta o cartel Corporação Vilania que quer invadir Themyscira.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60", nota_imdb: 5.9 },
+      { id: "dc-6", titulo_pt: "Superman vs. A Elite", titulo_original: "Superman vs. The Elite", editora: "DC", ano: 2012, duracao_minutos: 76, classificacao_etaria: "14+", universo_selo: "DC Original Movies", personagens_principais: ["Superman"], generos: ["Ação", "Drama"], sinopse: "A moral do Superman é posta em xeque por anti-heróis violentos.", poster_url: "https://images.unsplash.com/photo-1533613220915-609f661a6fe1?w=500&q=60", nota_imdb: 7.0 },
+      { id: "marvel-1", titulo_pt: "Hulk Vs. Wolverine", titulo_original: "Hulk Vs. Wolverine", editora: "Marvel", ano: 2009, duracao_minutos: 37, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk", "Wolverine", "Deadpool"], generos: ["Ação"], sinopse: "Wolverine é enviado para conter o Incrível Hulk no Canadá.", poster_url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=60", nota_imdb: 7.0 },
+      { id: "marvel-2", titulo_pt: "Planeta Hulk", titulo_original: "Planet Hulk", editora: "Marvel", ano: 2010, duracao_minutos: 81, classificacao_etaria: "14+", universo_selo: "Animated Features", personagens_principais: ["Hulk"], generos: ["Ficção Científica"], sinopse: "Hulk banido chega em Sakaar e vira um gladiador lendário.", poster_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=60", nota_imdb: 6.8 },
+      { id: "marvel-3", titulo_pt: "Doutor Estranho: O Mago Supremo", titulo_original: "Doctor Strange", editora: "Marvel", ano: 2007, duracao_minutos: 95, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Doutor Estranho", "Ancião"], generos: ["Magia"], sinopse: "O cirurgião Strange viaja ao Tibete e descobre as artes ocultas.", poster_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&q=60", nota_imdb: 6.7 },
+      { id: "marvel-4", titulo_pt: "Thor: O Filho de Asgard", titulo_original: "Thor: Tales of Asgard", editora: "Marvel", ano: 2011, duracao_minutos: 77, classificacao_etaria: "10+", universo_selo: "Animated Features", personagens_principais: ["Thor", "Loki"], generos: ["Mitologia"], sinopse: "O jovem Thor e Loki saem em busca da espada de Surtur.", poster_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=60", nota_imdb: 6.3 },
+      { id: "marvel-5", titulo_pt: "Os Supremos: O Filme", titulo_original: "Ultimate Avengers", editora: "Marvel", ano: 2006, duracao_minutos: 72, classificacao_etaria: "12+", universo_selo: "Animated Features", personagens_principais: ["Capitão América", "Homem de Ferro", "Hulk", "Thor"], generos: ["Ação"], sinopse: "Heróis se unem para impedir uma invasão Chitauri na Terra.", poster_url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&q=60", nota_imdb: 6.6 },
+      { id: "dc-7", titulo_pt: "Liga da Justiça: Ponto de Ignição", titulo_original: "The Flashpoint Paradox", editora: "DC", ano: 2013, duracao_minutos: 81, classificacao_etaria: "16+", universo_selo: "DCAMU", personagens_principais: ["Flash", "Batman", "Mulher-Maravilha"], generos: ["Ação"], sinopse: "Barry altera o tempo, criando uma realidade caótica e brutal.", poster_url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=500&q=60", nota_imdb: 8.1 }
     ];
 
     const AVATAR_COLORS = [
@@ -1357,6 +1359,18 @@
           if(this.filters.sortBy==='ano_desc') return b.ano - a.ano;
           if(this.filters.sortBy==='ano_asc') return a.ano - b.ano;
           if(this.filters.sortBy==='duracao_desc') return b.duracao_minutos - a.duracao_minutos;
+          if(this.filters.sortBy==='imdb_desc') {
+            const na = a.nota_imdb != null ? a.nota_imdb : -1;
+            const nb = b.nota_imdb != null ? b.nota_imdb : -1;
+            if (nb !== na) return nb - na;
+            return a.titulo_pt.localeCompare(b.titulo_pt);
+          }
+          if(this.filters.sortBy==='imdb_asc') {
+            const na = a.nota_imdb != null ? a.nota_imdb : 999;
+            const nb = b.nota_imdb != null ? b.nota_imdb : 999;
+            if (na !== nb) return na - nb;
+            return a.titulo_pt.localeCompare(b.titulo_pt);
+          }
           if(this.filters.sortBy==='nota_desc') return (pb.nota||0) - (pa.nota||0);
           return a.titulo_pt.localeCompare(b.titulo_pt);
         });
@@ -1566,12 +1580,25 @@
             ${m.titulo_original ? `<div class="text-xs sm:text-sm text-slate-400 italic mt-0.5">${m.titulo_original}</div>` : ''}
           </div>
 
-          <!-- Metadados em Pills: Ano, Duração, Selo/Universo -->
+          <!-- Metadados em Pills: Ano, Duração, Selo/Universo, Nota IMDb -->
           <div class="flex items-center gap-2 mt-3 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs font-semibold text-slate-300">${m.ano}</span>
             <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs font-semibold text-slate-300">${m.duracao_minutos} min</span>
             ${m.universo_selo ? `<span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-cyan-800/50 text-cyan-400 text-xs font-semibold">${m.universo_selo}</span>` : ''}
             ${m.classificacao_etaria ? `<span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-xs text-slate-400 font-semibold">${m.classificacao_etaria}</span>` : ''}
+            ${m.nota_imdb != null ? `
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-1.5 shadow-sm" title="Nota do filme no IMDb">
+                <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1 py-0.5 rounded uppercase tracking-wider">IMDb</span>
+                <span class="font-extrabold text-amber-300">${typeof m.nota_imdb === 'number' ? m.nota_imdb.toFixed(1) : m.nota_imdb}</span>
+                <i class="fa-solid fa-star text-[10px] text-amber-400"></i>
+                <span class="text-[10px] text-amber-400/60 font-normal">/10</span>
+              </span>
+            ` : `
+              <span class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/70 text-slate-400 text-xs font-medium flex items-center gap-1.5" title="Sem nota no IMDb">
+                <span class="bg-slate-700 text-slate-300 font-bold text-[9px] px-1 py-0.5 rounded uppercase">IMDb</span>
+                <span class="text-xs">Sem nota</span>
+              </span>
+            `}
           </div>
 
           <!-- Sinopse -->
@@ -2014,18 +2041,26 @@
       }
 
       async syncRemoteCatalog({ force = false } = {}) {
-        // Se for verificação automática e já tiver sincronizado hoje, não faz nada e não exibe nenhuma mensagem
-        if (!force && !this.shouldAutoSyncCatalog()) {
+        const hasImdb = this.db.getCatalog().some(m => m.nota_imdb !== undefined);
+        // Se for verificação automática, já tiver notas IMDb e já tiver sincronizado hoje, ignora
+        if (!force && hasImdb && !this.shouldAutoSyncCatalog()) {
           console.log('Catálogo já verificado hoje. Sincronização automática ignorada.');
           return false;
         }
 
-        const REMOTE_URL = 'https://jalesmonteiro.github.io/multiverso_dos_herois/docs/catalogo.json';
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        const PRIMARY_URL = isLocal ? './docs/catalogo.json' : 'https://jalesmonteiro.github.io/multiverso_dos_herois/docs/catalogo.json';
+        const FALLBACK_URL = isLocal ? './catalogo.json' : './docs/catalogo.json';
+        
         this.setSyncBadge('loading', 'Conectando ao catálogo oficial...');
 
         try {
-          const res = await fetch(REMOTE_URL, { cache: 'no-cache' });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          let res = await fetch(PRIMARY_URL, { cache: 'no-cache' });
+          if (!res.ok) {
+            // Tenta fallback se a URL principal falhar
+            res = await fetch(FALLBACK_URL, { cache: 'no-cache' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          }
 
           let remoteCatalog;
           const contentLength = res.headers.get('content-length');
@@ -2089,7 +2124,7 @@
             this.renderAll();
             this.updateDataModalSyncLabel();
             this.setSyncBadge('success', `Catálogo atualizado! (${mergedCatalog.length} filmes)`);
-            console.log(`Catálogo atualizado com sucesso do link oficial (${mergedCatalog.length} filmes).`);
+            console.log(`Catálogo atualizado com sucesso (${mergedCatalog.length} filmes).`);
             return true;
           } else {
             throw new Error('Formato inválido do catálogo');
