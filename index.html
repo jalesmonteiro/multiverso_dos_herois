@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Multiverso dos heróis</title>
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+  <link rel="shortcut icon" href="favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="favicon/site.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -909,6 +916,7 @@
         document.getElementById('closeUserModalBtn').onclick = () => this.closeUserModal();
         document.getElementById('btnCancelUserModal').onclick = () => this.closeUserModal();
         document.getElementById('btnSaveUserModal').onclick = () => this.saveUserModal();
+        document.getElementById('userModal').onclick = (e) => { if(e.target.id === 'userModal') this.closeUserModal(); };
         document.getElementById('btnDeleteUser').onclick = () => this.confirmAction('Atenção', 'Deseja excluir este perfil e todos os seus dados de visto/favoritos? Isso não afetará outros perfis.', () => this.deleteUser(), 'Excluir', 'bg-red-500 text-white hover:bg-red-600');
 
         // Filtros e UI Principal
@@ -1096,13 +1104,9 @@
         };
 
         // Data Modal
-        document.getElementById('openDataModalBtn').onclick = () => {
-          document.getElementById('dataModalActiveUser').textContent = this.db.getUserById(this.db.getActiveUserId()).nome;
-          this.updateDataModalSyncLabel();
-          document.getElementById('dataModal').classList.remove('hidden');
-          document.getElementById('dataModal').classList.add('flex');
-        };
-        document.getElementById('closeDataModalBtn').onclick = () => { document.getElementById('dataModal').classList.add('hidden'); document.getElementById('dataModal').classList.remove('flex'); };
+        document.getElementById('openDataModalBtn').onclick = () => this.openDataModal();
+        document.getElementById('closeDataModalBtn').onclick = () => this.closeDataModal();
+        document.getElementById('dataModal').onclick = (e) => { if(e.target.id === 'dataModal') this.closeDataModal(); };
         document.getElementById('btnExportUserProgress').onclick = () => this.exportUserData();
         document.getElementById('btnExportCatalog').onclick = () => this.exportCatalogData();
         document.getElementById('importUserProgressFile').onchange = (e) => this.importUserData(e);
@@ -1126,9 +1130,51 @@
         document.getElementById('btnResetDefaultCatalog').onclick = () => this.confirmAction('Restaurar Catálogo', 'Esta ação substituirá os filmes atuais pelos 12 da lista base. Deseja continuar?', () => {
           this.db.resetCatalog();
           this.showToast('Catálogo restaurado!');
-          document.getElementById('closeDataModalBtn').click();
+          this.closeDataModal();
           this.renderAll();
         }, 'Restaurar');
+
+        // Fechar modais ao pressionar tecla Escape
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            const customDialog = document.getElementById('customDialogModal');
+            if (customDialog && !customDialog.classList.contains('hidden')) {
+              customDialog.classList.add('hidden');
+              customDialog.classList.remove('flex');
+              return;
+            }
+            const dataModal = document.getElementById('dataModal');
+            if (dataModal && !dataModal.classList.contains('hidden')) {
+              this.closeDataModal();
+              return;
+            }
+            const userModal = document.getElementById('userModal');
+            if (userModal && !userModal.classList.contains('hidden')) {
+              this.closeUserModal();
+              return;
+            }
+            const imgModal = document.getElementById('imageEditModal');
+            if (imgModal && !imgModal.classList.contains('hidden')) {
+              this.closePosterEditModal();
+              return;
+            }
+            const detailModal = document.getElementById('movieDetailModal');
+            if (detailModal && !detailModal.classList.contains('hidden')) {
+              this.closeDetailModal();
+              return;
+            }
+            const drawer = document.getElementById('achievementsDrawer');
+            if (drawer && !drawer.classList.contains('translate-x-full')) {
+              this.closeDrawer();
+              return;
+            }
+            const userDrop = document.getElementById('userDropdown');
+            if (userDrop && !userDrop.classList.contains('hidden')) {
+              userDrop.classList.add('hidden');
+              return;
+            }
+          }
+        });
       }
 
       showToast(msg) {
@@ -1159,6 +1205,7 @@
         
         btns.appendChild(btnCancel);
         btns.appendChild(btnConf);
+        modal.onclick = (e) => { if(e.target.id === 'customDialogModal') { modal.classList.add('hidden'); modal.classList.remove('flex'); } };
         modal.classList.remove('hidden'); modal.classList.add('flex');
       }
 
@@ -1229,6 +1276,25 @@
       }
 
       closeUserModal() { document.getElementById('userModal').classList.add('hidden'); document.getElementById('userModal').classList.remove('flex'); }
+
+      openDataModal() {
+        const u = this.db.getUserById(this.db.getActiveUserId());
+        if (u) {
+          document.getElementById('dataModalActiveUser').textContent = u.nome;
+        }
+        this.updateDataModalSyncLabel();
+        const dm = document.getElementById('dataModal');
+        dm.classList.remove('hidden');
+        dm.classList.add('flex');
+      }
+
+      closeDataModal() {
+        const dm = document.getElementById('dataModal');
+        if (dm) {
+          dm.classList.add('hidden');
+          dm.classList.remove('flex');
+        }
+      }
       
       saveUserModal() {
         const nome = document.getElementById('userModalNameInput').value.trim();
@@ -2042,8 +2108,9 @@
 
       async syncRemoteCatalog({ force = false } = {}) {
         const hasImdb = this.db.getCatalog().some(m => m.nota_imdb !== undefined);
-        // Se for verificação automática, já tiver notas IMDb e já tiver sincronizado hoje, ignora
-        if (!force && hasImdb && !this.shouldAutoSyncCatalog()) {
+        const currentCount = this.db.getCatalog().length;
+        // Se for verificação automática, já tiver notas IMDb, catálogo com todos os 84 filmes e já tiver sincronizado hoje, ignora
+        if (!force && hasImdb && currentCount >= 84 && !this.shouldAutoSyncCatalog()) {
           console.log('Catálogo já verificado hoje. Sincronização automática ignorada.');
           return false;
         }
