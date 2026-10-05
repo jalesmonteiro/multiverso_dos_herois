@@ -586,6 +586,40 @@
       { name: 'Roxo', bg: '#8b5cf6', text: '#ffffff' }
     ];
 
+    function normalizeText(str) {
+      if (!str) return '';
+      return String(str)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    }
+
+    const HERO_ALIASES = {
+      'Homem-Aranha': ['Peter Parker', 'Miles Morales', "Miguel O'Hara"],
+      'Batman': ['Bruce Wayne', 'Yohualli Coatl'],
+      'Robin': ['Robin (Damian)', 'Damian Wayne'],
+      'Mr. Freeze': ['Senhor Frio'],
+      'Senhor Frio': ['Mr. Freeze'],
+      'Batwoman': ['Mulher-Morcego'],
+      'Mulher-Morcego': ['Batwoman'],
+      'Mestre dos Oceanos': ['Mestre do Oceano'],
+      'Mestre do Oceano': ['Mestre dos Oceanos']
+    };
+
+    function getCharacterMatchingSet(charName) {
+      if (!charName) return new Set();
+      const set = new Set([charName]);
+      const aliases = HERO_ALIASES[charName] || [];
+      aliases.forEach(a => set.add(a));
+      return set;
+    }
+
+    function movieMatchesCharacter(movie, charName) {
+      if (!charName) return true;
+      const matchSet = getCharacterMatchingSet(charName);
+      return (movie.personagens_principais || []).some(p => matchSet.has(p));
+    }
+
     class LocalDb {
       constructor() {
         this.DB_NAME = 'MultiversoHeroisDB';
@@ -886,7 +920,7 @@
         this.db = new LocalDb();
         this.currentViewMode = 'grid';
         this.filters = { publisher: 'ALL', status: 'ALL', character: null, search: '', sortBy: 'ano_desc' };
-        this.pagination = { current: 1, limit: 12 };
+        this.pagination = { current: 1, limit: 20 };
         this.editingUserId = null;
         this.modalTargetMovieId = null;
         this.heroFilterExpanded = false;
@@ -925,7 +959,7 @@
 
         searchInput.oninput = (e) => {
           const val = e.target.value;
-          this.filters.search = val.toLowerCase().trim();
+          this.filters.search = normalizeText(val).trim();
           if (clearSearchBtn) clearSearchBtn.classList.toggle('hidden', !val);
           this.pagination.current = 1;
           this.renderMovies();
@@ -1360,9 +1394,26 @@
       }
 
       renderCharacterChips() {
+        const cat = this.db.getCatalog();
+        const allChars = new Set();
+        cat.forEach(m => (m.personagens_principais || []).forEach(c => allChars.add(c)));
+        Object.keys(HERO_ALIASES).forEach(c => {
+          if (cat.some(m => movieMatchesCharacter(m, c))) {
+            allChars.add(c);
+          }
+        });
+
         const counts = {};
-        this.db.getCatalog().forEach(m => (m.personagens_principais||[]).forEach(c => counts[c] = (counts[c]||0)+1));
-        const sorted = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
+        allChars.forEach(c => {
+          counts[c] = cat.filter(m => movieMatchesCharacter(m, c)).length;
+        });
+
+        const sorted = Array.from(allChars)
+          .filter(c => counts[c] > 0)
+          .sort((a,b) => {
+            if (counts[b] !== counts[a]) return counts[b] - counts[a];
+            return a.localeCompare(b);
+          });
         
         const cont = document.getElementById('characterChipsContainer'); cont.innerHTML='';
         sorted.forEach(c => {
@@ -1412,10 +1463,24 @@
           if (this.filters.status === 'FAVORITES' && !p.favorito) return false;
           if (this.filters.status === 'WATCHLIST' && !p.watchlist) return false;
           if (this.filters.status === 'UNWATCHED' && p.visto) return false;
-          if (this.filters.character && !(m.personagens_principais||[]).includes(this.filters.character)) return false;
+          if (this.filters.character && !movieMatchesCharacter(m, this.filters.character)) return false;
           if (this.filters.search) {
-            const s = this.filters.search;
-            if (!(m.titulo_pt||'').toLowerCase().includes(s) && !(m.titulo_original||'').toLowerCase().includes(s) && !(m.sinopse||'').toLowerCase().includes(s)) return false;
+            const s = normalizeText(this.filters.search).trim();
+            if (s) {
+              const terms = s.split(/\s+/).filter(Boolean);
+              const chars = (m.personagens_principais || []).join(' ');
+              const generos = (m.generos || []).join(' ');
+              const searchable = normalizeText([
+                m.titulo_pt || '',
+                m.titulo_original || '',
+                m.ano || '',
+                m.sinopse || '',
+                chars,
+                generos,
+                m.universo_selo || ''
+              ].join(' '));
+              if (!terms.every(term => searchable.includes(term))) return false;
+            }
           }
           return true;
         });
@@ -2040,13 +2105,23 @@
           this.syncBadgeTimer = null;
         }
 
+        // Se for para esconder ou em caso de erro/cache local: não exibe nenhuma mensagem
+        if (state === 'hide' || state === 'error') {
+          badge.classList.add('opacity-0', 'hidden');
+          if (mini) {
+            mini.classList.add('hidden');
+            mini.classList.remove('inline-flex');
+          }
+          return;
+        }
+
         if (state === 'loading') {
           badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold shadow-sm transition-all duration-300';
           icon.className = 'fa-solid fa-arrows-rotate fa-spin text-xs';
-          text.textContent = message || 'Carregando catálogo oficial...';
+          text.textContent = message || 'Baixando catálogo oficial...';
           badge.classList.remove('hidden', 'opacity-0');
           if (mini && miniText) {
-            miniText.textContent = message || 'Carregando catálogo oficial...';
+            miniText.textContent = message || 'Baixando catálogo oficial...';
             mini.classList.remove('hidden');
             mini.classList.add('inline-flex');
           }
@@ -2063,19 +2138,6 @@
             badge.classList.add('opacity-0');
             setTimeout(() => badge.classList.add('hidden'), 500);
           }, 3500);
-        } else if (state === 'error') {
-          badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-semibold shadow-sm transition-all duration-300';
-          icon.className = 'fa-solid fa-circle-info text-xs text-amber-400';
-          text.textContent = message || 'Usando catálogo em cache local';
-          badge.classList.remove('hidden', 'opacity-0');
-          if (mini) {
-            mini.classList.add('hidden');
-            mini.classList.remove('inline-flex');
-          }
-          this.syncBadgeTimer = setTimeout(() => {
-            badge.classList.add('opacity-0');
-            setTimeout(() => badge.classList.add('hidden'), 500);
-          }, 4000);
         }
       }
 
@@ -2109,17 +2171,39 @@
       async syncRemoteCatalog({ force = false } = {}) {
         const hasImdb = this.db.getCatalog().some(m => m.nota_imdb !== undefined);
         const currentCount = this.db.getCatalog().length;
-        // Se for verificação automática, já tiver notas IMDb, catálogo com todos os 84 filmes e já tiver sincronizado hoje, ignora
-        if (!force && hasImdb && currentCount >= 84 && !this.shouldAutoSyncCatalog()) {
-          console.log('Catálogo já verificado hoje. Sincronização automática ignorada.');
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+
+        // No ambiente local e sem forçar sincronização manual, opera 100% em silêncio (sem badges)
+        if (isLocal && !force) {
+          try {
+            const hasUpdatedChars = this.db.getCatalog().some(m => m.id === 'marvel-16' && (m.personagens_principais || []).includes('Homem-Aranha'));
+            if (currentCount < 113 || !hasImdb || !hasUpdatedChars) {
+              const res = await fetch('./docs/catalogo.json');
+              if (res.ok) {
+                const localCatalog = await res.json();
+                if (Array.isArray(localCatalog) && localCatalog.length > 0) {
+                  this.db.saveCatalog(localCatalog);
+                  this.renderAll();
+                }
+              }
+            }
+          } catch(e) {}
+          this.setSyncBadge('hide');
           return false;
         }
 
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        // Se for verificação automática remota, já tiver notas IMDb, catálogo com todos os 113 filmes e já tiver sincronizado hoje, não exibe nada
+        if (!force && hasImdb && currentCount >= 113 && !this.shouldAutoSyncCatalog()) {
+          console.log('Catálogo já verificado hoje. Sincronização automática ignorada.');
+          this.setSyncBadge('hide');
+          return false;
+        }
+
         const PRIMARY_URL = isLocal ? './docs/catalogo.json' : 'https://jalesmonteiro.github.io/multiverso_dos_herois/docs/catalogo.json';
         const FALLBACK_URL = isLocal ? './catalogo.json' : './docs/catalogo.json';
         
-        this.setSyncBadge('loading', 'Conectando ao catálogo oficial...');
+        // Só exibe feedback visual se realmente for iniciar o download
+        this.setSyncBadge('loading', 'Baixando catálogo oficial...');
 
         try {
           let res = await fetch(PRIMARY_URL, { cache: 'no-cache' });
@@ -2165,7 +2249,6 @@
             const text = new TextDecoder('utf-8').decode(allChunks);
             remoteCatalog = JSON.parse(text);
           } else {
-            this.setSyncBadge('loading', 'Baixando catálogo oficial...');
             remoteCatalog = await res.json();
           }
 
@@ -2198,22 +2281,21 @@
           }
         } catch (err) {
           console.warn('Não foi possível atualizar o catálogo pelo link remoto:', err);
-          // Fallback para arquivo local relativo se disponível
+          // Fallback silencioso para arquivo local relativo se disponível
           try {
             const localRes = await fetch('./docs/catalogo.json');
             if (localRes.ok) {
               const localCatalog = await localRes.json();
               if (Array.isArray(localCatalog) && localCatalog.length > 0 && localCatalog[0].id) {
                 this.db.saveCatalog(localCatalog);
-                this.db.setLastCatalogSync(); // Salva no banco a data e hora
+                this.db.setLastCatalogSync();
                 this.renderAll();
                 this.updateDataModalSyncLabel();
-                this.setSyncBadge('success', `Catálogo local carregado (${localCatalog.length} filmes)`);
-                return true;
               }
             }
           } catch(e) {}
-          this.setSyncBadge('error', 'Usando catálogo em cache local');
+          // Quando for local ou erro/fallback, não exibe nenhuma mensagem
+          this.setSyncBadge('hide');
         }
         return false;
       }
